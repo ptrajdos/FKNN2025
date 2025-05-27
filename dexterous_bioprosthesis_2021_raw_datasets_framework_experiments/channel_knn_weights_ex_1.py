@@ -9,41 +9,9 @@ from sklearn.mixture import GaussianMixture
 from weightedknn.estimators.weightedknn import WeightedKNNClassifier
 from kernelnb.estimators.estimatornb import EstimatorNB
 
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_combination_weight_estim_nb import (
-    AttributeCombinationWeightEstimNB,
-    attribute_weights_former_mean2,
-    channel_group_gen,
-)
 from results_storage.results_storage import ResultsStorage
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_combination_weight_estim_nb_crisp import AttributeCombinationWeightEstimNBCrisp
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_combination_weight_estim_nb_crisp2 import AttributeCombinationWeightEstimNBCrisp2
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_sel_nb.attribute_weight_estim_nb_hard import AttributeWeightEstimNBHard
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_weight_estim_nb import AttributeWeightEstimNB
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.channel_combination_classifier_outliers_fast2 import (
-    ChannelCombinationClassifierOutliersFast2,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.channel_combination_classifier_outliers_fast2s import (
-    ChannelCombinationClassifierOutliersFast2S,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.des.des_p_outlier_full import (
-    DespOutlierFull,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.des.des_p_outlier_full2 import (
-    DespOutlierFull2,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.fuzzy_knn import (
-    FuzzyKNN,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_crisp import InlierScoreTransformerCrisp
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_low_para import (
-    InlierScoreTransformerLowPara,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_scaled_sigmoid import (
-    InlierScoreTransformerScaledSigmoid,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.outlier.outlier_detector_combiner_mean import (
-    OutlierDetectorCombinerMean,
-)
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.skdict import skdict
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.stats_tools import (
     p_val_matrix_to_vec,
@@ -54,26 +22,17 @@ import pandas as pd
 
 import numpy as np
 import pandas as pd
-from sklearn.covariance import EllipticEnvelope
-from sklearn.ensemble import IsolationForest
 from sklearn.metrics import (
     balanced_accuracy_score,
     cohen_kappa_score,
     f1_score,
     make_scorer,
-    precision_score,
-    recall_score,
 )
-from sklearn.multiclass import OutputCodeClassifier
-from sklearn.neighbors import LocalOutlierFactor
 from sklearn.pipeline import Pipeline
 from sklearn.svm import OneClassSVM
 from statsmodels.stats.multitest import multipletests
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.parameter_selection.gridsearchcv_oneclass2 import (
     GridSearchCVOneClass2,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.preprocessing.dummy_transformer import (
-    DummyTransformer,
 )
 from dexterous_bioprosthesis_2021_raw_datasets_framework.preprocessing.one_class.outlier_generators.outlier_generator_uniform import (
     OutlierGeneratorUniform,
@@ -113,9 +72,6 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals_spoilers.ra
 from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals_spoilers.raw_signals_spoiler_cubicclipper import (
     RawSignalsSpoilerCubicClipper,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_smoothstep import (
-    InlierScoreTransformerSmoothstep,
-)
 
 
 from matplotlib.backends.backend_pdf import PdfPages
@@ -150,7 +106,6 @@ import seaborn as sns
 
 
 import random
-from ptranks.ranks.wra import wra
 from scipy.stats import rankdata
 
 # Plot line colors and markers
@@ -858,93 +813,6 @@ def run_experiment(
         with open(result_file_path, "wb") as fh:
             pickle.dump(results_storage, file=fh)
 
-def analyze_results_2C(results_directory, output_directory, alpha=0.05):
-    configurer.configure_plots()
-    result_files = [f for f in os.listdir(results_directory) if f.endswith(".pickle")]
-
-    for result_file in result_files:
-        result_file_basename = os.path.splitext(result_file)[0]
-        result_file_path = os.path.join(results_directory, result_file)
-
-        results_holder = pickle.load(open(result_file_path, "rb"))
-
-        method_names = results_holder[Dims.METHODS.value].values
-        n_methods = len(method_names)
-
-        pdf_file_path = os.path.join(
-            output_directory, "{}_snr_m2.pdf".format(result_file_basename)
-        )
-
-        with PdfPages(pdf_file_path) as pdf:
-
-            for metric_name in results_holder[Dims.METRICS.value].values:
-
-                for extractor_name in results_holder[Dims.EXTRACTORS.value].values:
-
-                    for classifier_name in results_holder[
-                        Dims.CLASSIFIERS.value
-                    ].values:
-
-                        for outlier_detector_name in results_holder[
-                            Dims.DETECTORS.value
-                        ].values:
-
-                            # metrics x extractors x classifiers x detectors x spoilers x snr x ch_fraction x methods x folds
-                            sub_results = results_holder.loc[
-                                {
-                                    Dims.METRICS.value: metric_name,
-                                    Dims.EXTRACTORS.value: extractor_name,
-                                    Dims.CLASSIFIERS.value: classifier_name,
-                                    Dims.DETECTORS.value: outlier_detector_name,
-                                }
-                            ].to_numpy()  # spoilers x snr x chan_frac x methods x folds
-
-                            # methods x spoilers x snrs x  ch_frac x folds
-                            sub_results = np.moveaxis(
-                                sub_results, [0, 1, 2, 3, 4], [3, 0, 1, 2, 4]
-                            )
-
-                            sub_results = np.mean(
-                                sub_results, axis=(0, 2)
-                            )  # snr x methods x folds
-
-                            df = pd.DataFrame(columns=["snr", "method", "value"])
-
-                            for i, snr_value in enumerate(
-                                results_holder[Dims.SNR.value].values
-                            ):
-                                for j, method_name in enumerate(method_names):
-                                    for k in range(sub_results.shape[2]):
-                                        new_row = pd.DataFrame(
-                                            {
-                                                "snr": snr_value,
-                                                "method": method_name,
-                                                "value": sub_results[i, j, k],
-                                            },
-                                            index=[0],
-                                        )
-                                        df = pd.concat(
-                                            [new_row, df.loc[:]]
-                                        ).reset_index(drop=True)
-                            sns.set(style="whitegrid")
-                            sns.boxplot(
-                                x=df["snr"],
-                                y=df["value"],
-                                hue=df["method"],
-                                palette="husl",
-                            )
-                            plt.title(
-                                "{}, {}, {}, Od:{}".format(
-                                    metric_name,
-                                    extractor_name,
-                                    classifier_name,
-                                    outlier_detector_name,
-                                )
-                            )
-
-                            pdf.savefig()
-                            plt.close()
-
 def analyze_results_2C_2(results_directory, output_directory, alpha=0.05):
     configurer.configure_plots()
     result_files = [f for f in os.listdir(results_directory) if f.endswith(".pickle")]
@@ -957,7 +825,7 @@ def analyze_results_2C_2(results_directory, output_directory, alpha=0.05):
 
         
         pdf_file_path = os.path.join(
-            output_directory, "{}_snr_m2_alt.pdf".format(result_file_basename)
+            output_directory, "{}_snr_m2.pdf".format(result_file_basename)
         )
 
         combined_results_holder = results_holder.stack(CMETHODS=(Dims.METHODS.value,Dims.CLASSIFIERS.value))
@@ -1031,255 +899,6 @@ def analyze_results_2C_2(results_directory, output_directory, alpha=0.05):
                             pdf.savefig()
                             plt.close()
 
-def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
-    configurer.configure_plots()
-    result_files = [f for f in os.listdir(results_directory) if f.endswith(".pickle")]
-    n_files = len(result_files)
-
-    # Init
-
-    classifier_names = None
-    n_classifiers = None
-    metric_names = None
-    n_metrics = None
-    extractor_names = None
-    n_extractors = None
-    outlier_detector_names = None
-    n_outlier_detectors = None
-    spoiler_names = None
-    n_spoilers = None
-    snrs = None
-    n_snrs = None
-    spoiled_channels_fraction = None
-    n_sp_channel_fraction = None
-    method_names = None
-    n_methods = None
-    n_folds = None
-
-    global_results = None
-
-    for result_file_id, result_file in enumerate(result_files):
-        result_file_basename = os.path.splitext(result_file)[0]
-        result_file_path = os.path.join(results_directory, result_file)
-
-        results_storage = pickle.load(open(result_file_path, "rb"))
-        results = results_storage.transpose(
-            Dims.METRICS.value,
-            Dims.EXTRACTORS.value,
-            Dims.CLASSIFIERS.value,
-            Dims.DETECTORS.value,
-            Dims.SPOILERS.value,
-            Dims.SNR.value,
-            Dims.CHANNEL_SPOIL_FRACTION.value,
-            Dims.METHODS.value,
-            Dims.FOLDS.value,
-        )
-
-        if global_results is None:
-
-            classifier_names = results_storage[Dims.CLASSIFIERS.value].values
-            n_classifiers = len(classifier_names)
-            metric_names = results_storage[Dims.METRICS.value].values
-            n_metrics = len(metric_names)
-            extractor_names = results_storage[Dims.EXTRACTORS.value].values
-            n_extractors = len(extractor_names)
-            outlier_detector_names = results_storage[Dims.DETECTORS.value].values
-            n_outlier_detectors = len(outlier_detector_names)
-            spoiler_names = results_storage[Dims.SPOILERS.value].values
-            n_spoilers = len(spoiler_names)
-            snrs = results_storage[Dims.SNR.value].values
-            n_snrs = len(snrs)
-            spoiled_channels_fraction = results_storage[
-                Dims.CHANNEL_SPOIL_FRACTION.value
-            ].values
-            n_sp_channel_fraction = len(spoiled_channels_fraction)
-            method_names = results_storage[Dims.METHODS.value].values
-            n_methods = len(method_names)
-
-            # metrics x extractors x classifiers x detectors x spoilers x snr x ch_fraction x methods x folds
-
-            n_folds = results.shape[-1]
-
-            # n_files x metrics x extractors x classifiers x detectors x spoilers x snr x ch_fraction x methods x folds
-            global_results = np.zeros(
-                (
-                    n_files,
-                    n_metrics,
-                    n_extractors,
-                    n_classifiers,
-                    n_outlier_detectors,
-                    n_spoilers,
-                    n_snrs,
-                    n_sp_channel_fraction,
-                    n_methods,
-                    n_folds,
-                )
-            )
-
-        global_results[result_file_id] = results
-
-        pdf_file_path = os.path.join(
-            output_directory, "{}_snr_m2_ranks.pdf".format("ALL")
-        )
-        report_file_path = os.path.join(
-            output_directory, "{}_snr_m2_ranks.md".format("ALL")
-        )
-        report_file_handler = open(report_file_path, "w+")
-
-        with PdfPages(pdf_file_path) as pdf:
-
-            for metric_id, metric_name in enumerate(metric_names):
-                print("# {}".format(metric_name), file=report_file_handler)
-
-                for extractor_id, extractor_name in enumerate(extractor_names):
-                    print("## {}".format(extractor_name), file=report_file_handler)
-
-                    for classifier_id, classifier_name in enumerate(classifier_names):
-                        print(
-                            "### {}".format(classifier_name), file=report_file_handler
-                        )
-
-                        for outlier_detector_id, outlier_detector_name in enumerate(
-                            outlier_detector_names
-                        ):
-                            print(
-                                "#### {}".format(outlier_detector_name),
-                                file=report_file_handler,
-                            )
-
-                            # files x metrics x extractors x classifiers x detectors x spoilers x snr x ch_fraction x methods x folds
-                            # files 0 x spoilers 1 x snr 2 x ch_fraction 3 x methods 4 x folds 5
-                            sub_results = global_results[
-                                :,
-                                metric_id,
-                                extractor_id,
-                                classifier_id,
-                                outlier_detector_id,
-                                :,
-                                :,
-                                :,
-                            ]
-                            # methods  0 x snrs 1 x ( files 2 x spoilers 3 x ch_frac 4 x folds 5)
-                            sub_results_r = np.moveaxis(
-                                sub_results, [0, 1, 2, 3, 4, 5], [2, 3, 1, 4, 0, 5]
-                            )
-                            sub_results = sub_results_r.reshape((n_methods, n_snrs, -1))
-
-                            ranked_data = rankdata(sub_results, axis=0)
-                            # methods, snrs
-                            avg_ranks = np.mean(ranked_data, axis=-1)
-
-                            for method_id, method_name in enumerate(method_names):
-
-                                plt.plot(
-                                    [int(i) for i in snrs],
-                                    avg_ranks[method_id, :],
-                                    label=method_name,
-                                )
-                                plt.grid(True, linestyle="--", alpha=0.7)
-
-                            plt.title(
-                                "{}, {}, {}, {}".format(
-                                    metric_name,
-                                    extractor_name,
-                                    classifier_name,
-                                    outlier_detector_name,
-                                )
-                            )
-                            plt.xlabel("SNR")
-                            plt.ylabel("Criterion avg rank")
-                            plt.legend()
-                            pdf.savefig()
-                            plt.close()
-
-                            # avg_ranks (methods, snrs)
-                            mi = pd.MultiIndex.from_arrays(
-                                [
-                                    [
-                                        "{}".format(metric_name)
-                                        for _ in range(n_methods)
-                                    ],
-                                    [m for m in method_names],
-                                ]
-                            )
-                            av_rnk_df = pd.DataFrame(
-                                avg_ranks.T,
-                                columns=mi,
-                                index=[
-                                    "Avg Rnk {}, snr:{}".format(a, si)
-                                    for si, a in zip(snrs, string.ascii_letters)
-                                ],
-                            )
-
-                            # methods  0 x snrs 1 x ( files 2 x spoilers 3 x ch_frac 4)
-                            sub_results_snr = sub_results_r.reshape(
-                                (n_methods, n_snrs, -1)
-                            )
-                            for snr_id, (snr_name, snr_letter) in enumerate(
-                                zip(snrs, string.ascii_letters)
-                            ):
-                                # methods    x ( files  x spoilers )
-                                values = sub_results_snr[:, snr_id]
-                                p_vals = np.zeros((n_methods, n_methods))
-                                for i in range(n_methods):
-                                    for j in range(n_methods):
-                                        if i == j:
-                                            continue
-
-                                        values_squared_diff = np.sqrt(
-                                            np.sum((values[i, :] - values[j, :]) ** 2)
-                                        )
-                                        if values_squared_diff > 1e-4:
-                                            with warnings.catch_warnings():  # Normal approximation
-                                                warnings.simplefilter("ignore")
-                                                p_vals[i, j] = wilcoxon(
-                                                    values[i], values[j]
-                                                ).pvalue  # mannwhitneyu(values[:,i], values[:,j]).pvalue
-                                        else:
-                                            p_vals[i, j] = 1.0
-
-                                p_val_vec = p_val_matrix_to_vec(p_vals)
-
-                                p_val_vec_corrected = multipletests(
-                                    p_val_vec, method="hommel"
-                                )
-                                corr_p_val_matrix = p_val_vec_to_matrix(
-                                    p_val_vec_corrected[1],
-                                    n_methods,
-                                    symmetrize=True,
-                                )
-
-                                s_test_outcome = []
-                                for i in range(n_methods):
-                                    out_a = []
-                                    for j in range(n_methods):
-                                        if (
-                                            avg_ranks[i, snr_id] > avg_ranks[j, snr_id]
-                                            and corr_p_val_matrix[i, j] < alpha
-                                        ):
-                                            out_a.append(j + 1)
-                                    if len(out_a) == 0:
-                                        s_test_outcome.append("--")
-                                    else:
-                                        s_test_outcome.append(
-                                            "{\\scriptsize "
-                                            + ",".join([str(x) for x in out_a])
-                                            + "}"
-                                        )
-                                av_rnk_df.loc[
-                                    "{} {}, snr:{}_T".format(
-                                        "Avg Rnk", snr_letter, snr_name
-                                    )
-                                ] = s_test_outcome
-                                av_rnk_df.sort_index(inplace=True)
-
-                            av_rnk_df.style.format(precision=3, na_rep="").format_index(
-                                escape="latex", axis=0
-                            ).format_index(escape="latex", axis=1).to_latex(
-                                report_file_handler, multicol_align="c"
-                            )
-
-        report_file_handler.close()
 
 def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
     configurer.configure_plots()
@@ -1385,10 +1004,10 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
         global_results[result_file_id] = results
 
     pdf_file_path = os.path.join(
-        output_directory, "{}_snr_m2_alt_ranks.pdf".format("ALL")
+        output_directory, "{}_snr_m2_ranks.pdf".format("ALL")
     )
     report_file_path = os.path.join(
-        output_directory, "{}_snr_m2_alt_ranks.md".format("ALL")
+        output_directory, "{}_snr_m2_ranks.md".format("ALL")
     )
     report_file_handler = open(report_file_path, "w+")
 
@@ -1549,7 +1168,7 @@ if __name__ == "__main__":
     random.seed(0)
 
     
-    data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022")
+    data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022_H")
     
     data_sets = [data_path0B]
 
@@ -1574,27 +1193,21 @@ if __name__ == "__main__":
     run_experiment(
         data_sets,
         output_directory,
-        n_splits=10,  # 10
-        n_repeats=4,  # 4
+        n_splits=10,  
+        n_repeats=4,  
         random_state=0,
         n_jobs=-1,
         overwrite=True,
-        n_channels=16,  # 16
+        n_channels=16,  
         progress_log_handler=progress_log_handler,
         comment_str=comment_str,
     )
 
     analysis_functions = [
-        analyze_results,
-        analyze_results_2,
-        analyze_results_2B,
-        analyze_results_2B_ranks,
-        analyze_results_2B_wranks,
-        analyze_results_2C,
+        
         analyze_results_2C_2,
-        analyze_results_2C_ranks,
         analyze_results_2C_2_ranks,
-        analyze_results_2C_wranks,
+        
     ]
     alpha = 0.05
 
