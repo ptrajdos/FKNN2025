@@ -18,13 +18,7 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.outlier
 from dexterous_bioprosthesis_2021_raw_datasets_framework.preprocessing.select_attributes_transformer import (
     SelectAttributesTransformer,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.set_creators.set_creator import (
-    SetCreator,
-)
 
-from dexterous_bioprosthesis_2021_raw_datasets_framework.set_creators.set_creator_feature_extractor import (
-    SetCreatorFeatureExtractor,
-)
 
 
 class ChannelCombinationClassifierOutliersFast2S(
