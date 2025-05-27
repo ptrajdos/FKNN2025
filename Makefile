@@ -23,8 +23,17 @@ clean:
 	rm -rf ${VENV_SUBDIR}
 
 
-run_experiments: create_env
-	. ${VENV_SUBDIR}/bin/activate; ${PYTHON} ${EXPERIMENT_SUBDIR}/channel_combination_ensemble_fast_full_MK2_f.py
+experiment1: create_env
+	. ${VENV_SUBDIR}/bin/activate; ${PYTHON} ${EXPERIMENT_SUBDIR}/channel_knn_weights_ex_1.py
+
+experiment2: create_env
+	. ${VENV_SUBDIR}/bin/activate; ${PYTHON} ${EXPERIMENT_SUBDIR}/channel_knn_weights_ex_2.py
+
+experiment3: create_env
+	. ${VENV_SUBDIR}/bin/activate; ${PYTHON} ${EXPERIMENT_SUBDIR}/channel_knn_weights_ex_3.py
+
+run_experiments: experiment1 experiment2 experiment3
+	@echo "All experiments completed successfully."
 
 
 venv:
