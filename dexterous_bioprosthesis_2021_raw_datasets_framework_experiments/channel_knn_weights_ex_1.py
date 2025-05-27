@@ -1168,7 +1168,7 @@ if __name__ == "__main__":
     random.seed(0)
 
     
-    data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022_H")
+    data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022")
     
     data_sets = [data_path0B]
 
