@@ -30,7 +30,7 @@ setup(
                 'tabulate==0.9.0',
                 'Jinja2==3.1.2',
                 'seaborn==0.13.2',
-                'weightedkjnn @ git+https://github.com/ptrajdos/WeightedKNNClassifier.git',
+                'weightedknn @ git+https://github.com/ptrajdos/WeightedKNNClassifier.git',
                 'results-storage @ git+https://github.com/ptrajdos/results_storge.git',
                 'kernelnb @ git+https://github.com/ptrajdos/KernelNB.git',
                 
