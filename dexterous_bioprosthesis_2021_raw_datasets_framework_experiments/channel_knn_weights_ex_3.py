@@ -1247,6 +1247,7 @@ if __name__ == "__main__":
     data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022")
 
     data_sets = [data_path0B]
+    # data_sets = [ os.path.join( settings.DATAPATH, "tsnre_windowed","A{}_Force_Exp_low_windowed".format(i)) for i in range(1,10) ]
 
     output_directory = os.path.join(
         settings.EXPERIMENTS_RESULTS_PATH,
