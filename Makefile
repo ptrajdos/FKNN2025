@@ -4,13 +4,15 @@ DATAFILEID=1bvoruWBz7YszlbrIyUs_ccxo80lbyecf
 DATADIR=${ROOTDIR}/data
 VENV_SUBDIR=${ROOTDIR}/venv
 EXPERIMENT_SUBDIR=${ROOTDIR}/dexterous_bioprosthesis_2021_raw_datasets_framework_experiments
-UPGRADE_LOG=${ROOTDIR}/upgrade.log
 INSTALLATION_LOG=${ROOTDIR}/install.log
 
 PYTHON=python
+SYSPYTHON=python
 PIP=pip
 CURL=curl
 TAR=tar
+
+VENV_OPTIONS=
 
 
 
@@ -39,8 +41,7 @@ run_experiments: experiment1 experiment2 experiment3
 
 venv:
 
-	${PYTHON} -m venv ${VENV_SUBDIR}
-	. ${VENV_SUBDIR}/bin/activate; ${PIP} install  pip setuptools wheel --upgrade --log ${UPGRADE_LOG}
+	${SYSPYTHON} -m venv --upgrade-deps ${VENV_OPTIONS} ${VENV_SUBDIR}
 	. ${VENV_SUBDIR}/bin/activate; ${PIP} install -e . --log ${INSTALLATION_LOG}
 
 data:
