@@ -288,6 +288,17 @@ def generate_classifiers():
     }
     return classifiers
 
+def rename_classifiers(name):
+    renaming = {
+        "WKNN": "KNN",
+        "NBGM": "NBM",
+        "GaussNB": "GNB",
+    }
+    renamed = renaming.get(name, name)
+    return renamed
+
+
+
 
 def warn_unknown_labels(y_true, y_pred):
     true_set = set(y_true)
@@ -873,7 +884,7 @@ def analyze_results_2C_2(results_directory, output_directory, alpha=0.05):
                                         new_row = pd.DataFrame(
                                             {
                                                 "snr": snr_value,
-                                                "method": str(method_name),
+                                                "method": f"{rename_classifiers(method_name[0])}, { rename_classifiers( method_name[1])}",
                                                 "value": sub_results[i, j, k],
                                             },
                                             index=[0],
@@ -1054,7 +1065,7 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
                         plt.plot(
                             [int(i) for i in snrs],
                             avg_ranks[method_id, :],
-                            label=str(method_name),
+                            label=f"{ rename_classifiers(method_name[0])}, { rename_classifiers( method_name[1])}",
                         )
                         plt.grid(True, linestyle="--", alpha=0.7)
 
@@ -1078,7 +1089,7 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
                                 "{}".format(metric_name)
                                 for _ in range(n_methods)
                             ],
-                            [m for m in method_names],
+                            [f"{ rename_classifiers(m[0])}, { rename_classifiers( m[1])}" for m in method_names],
                         ]
                     )
                     av_rnk_df = pd.DataFrame(
@@ -1214,7 +1225,7 @@ if __name__ == "__main__":
 
     ProgressParallel(
         backend="multiprocessing",
-        n_jobs=None,
+        n_jobs=-1,
         desc="Analysis",
         total=len(analysis_functions),
         leave=False,

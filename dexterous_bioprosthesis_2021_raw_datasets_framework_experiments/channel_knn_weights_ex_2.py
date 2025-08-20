@@ -467,6 +467,19 @@ def generate_methods():
     }
     return methods
 
+def rename_methods(name):
+    renam_dict = {
+        "FKNN_nt": "nt",
+        "FKNN_lp": "lp",
+        "FKNN_ss": "ss",
+        "FKNN_sm": "sm",
+        "FKNN_cr": "cr",
+        "FKNN_cr0": "cr0",
+    }
+    renamed = renam_dict.get(name, name)
+    return renamed
+
+
 
 # TODO -- INFO name '0' only for compatibility.
 def generate_spoiled_ch_fraction():
@@ -968,7 +981,7 @@ def analyze_results_2C(results_directory, output_directory, alpha=0.05):
                                         new_row = pd.DataFrame(
                                             {
                                                 "snr": snr_value,
-                                                "method": method_name,
+                                                "method": rename_methods(method_name),
                                                 "value": sub_results[i, j, k],
                                             },
                                             index=[0],
@@ -1139,7 +1152,7 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                                 plt.plot(
                                     [int(i) for i in snrs],
                                     avg_ranks[method_id, :],
-                                    label=method_name,
+                                    label=rename_methods(method_name),
                                 )
                                 plt.grid(True, linestyle="--", alpha=0.7)
 
@@ -1164,7 +1177,7 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                                         "{}".format(metric_name)
                                         for _ in range(n_methods)
                                     ],
-                                    [m for m in method_names],
+                                    [rename_methods(m) for m in method_names],
                                 ]
                             )
                             av_rnk_df = pd.DataFrame(
