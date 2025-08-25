@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 
 
 setup(
-        name='FKNN_2025',
+        name='FKNN2025',
         version ='0.0.1',
         author='Pawel Trajdos',
         author_email='pawel.trajdos@pwr.edu.pl',
-        url = 'https://github.com/ptrajdos/LDD2025',
-        description="Experiments for LDD 2025",
+        url = 'https://github.com/ptrajdos/FKNN2025.git',
+        description="Experiments for FKNN 2025 method",
         packages=find_packages(include=[
                 'dexterous_bioprosthesis_2021_raw_datasets_framework',
                 'dexterous_bioprosthesis_2021_raw_datasets_framework.*',
