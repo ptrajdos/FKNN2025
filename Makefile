@@ -1,6 +1,6 @@
 ROOTDIR=$(realpath $(dir $(firstword $(MAKEFILE_LIST))))
-DATAFILE=${ROOTDIR}/MK_10_03_2022.tar.xz
-DATAFILEID=1bvoruWBz7YszlbrIyUs_ccxo80lbyecf
+DATAFILE=${ROOTDIR}/tsnre_windowed.tar.xz
+DATAFILEID=15D-PUeOIHQXyJMhaoDGOxmSfAayMyBgb
 DATADIR=${ROOTDIR}/data
 VENV_SUBDIR=${ROOTDIR}/venv
 EXPERIMENT_SUBDIR=${ROOTDIR}/dexterous_bioprosthesis_2021_raw_datasets_framework_experiments

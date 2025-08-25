@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-        name='LDD2025',
+        name='FKNN_2025',
         version ='0.0.1',
         author='Pawel Trajdos',
         author_email='pawel.trajdos@pwr.edu.pl',
