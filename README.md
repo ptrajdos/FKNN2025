@@ -1,4 +1,4 @@
-# A Compound Classification System with Fuzzy Model Applied to the Noise-Tolerant Control of a Bionic Hand via EMG and MMG Signals Recognition
+# A Compound Classification System Based on Fuzzy Relations Applied to the Noise-Tolerant Control of a Bionic Hand via EMG Signal Recognition
 
 ## System Requirements
 
