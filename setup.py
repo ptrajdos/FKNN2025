@@ -33,6 +33,8 @@ setup(
                 'weightedknn @ git+https://github.com/ptrajdos/WeightedKNNClassifier.git',
                 'results-storage @ git+https://github.com/ptrajdos/results_storge.git',
                 'kernelnb @ git+https://github.com/ptrajdos/KernelNB.git',
+                'estim_attr_weight @ git+https://github.com/ptrajdos/estim_attr_weight.git',
+                
                 
         ],
         test_suite='test'
