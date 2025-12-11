@@ -146,6 +146,8 @@ from cycler import cycler
 
 from sklearn.model_selection._search import _estimator_has
 from sklearn.utils._available_if import available_if
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.multiclass import OutputCodeClassifier
 
 N_INTERNAL_SPLITS = 4
 
@@ -445,11 +447,42 @@ def generate_d_nb_soft(
     )
     return pipeline
 
+def generate_random_forest(base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None):
+    
+    params = {
+        "max_depth": [None, 10, 20],
+        "min_samples_split": [2, 5, 10],
+    }
+
+    rf_est = RandomForestClassifier(random_state=0)
+
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCVPP(estimator=rf_est, param_grid=params, scoring=bac_scorer, cv=cv)
+    return gs
+
+def generate_ecoc(base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None):
+    params = {
+        "estimator__max_depth": [None, 10, 20],
+        "estimator__min_samples_split": [2, 5, 10],
+    }
+    base_rf = RandomForestClassifier(random_state=0)
+    ecoc_est = OutputCodeClassifier(
+        estimator=base_rf,
+        code_size=2,
+        random_state=0,
+    )
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCVPP(estimator=ecoc_est, param_grid=params, scoring=bac_scorer, cv=cv)
+    return gs
 
 # TODO uncomment
 def generate_methods():
     methods = {
         "B": generate_base,
+        "RF": generate_random_forest,
+        "ECOC": generate_ecoc,
         "DO": generate_desp_outlier_full,  # FROM CLDD 2024 K=1
         "DOa": generate_desp_outlier_full_soft_mean,  # Soft Weighting K=1
         "AW": generate_d_nb_soft,  # From CORES 2025 soft version
@@ -1274,7 +1307,7 @@ if __name__ == "__main__":
         random_state=0,
         n_jobs=-1,
         overwrite=True,
-        n_channels=16,
+        n_channels=8,
         progress_log_handler=progress_log_handler,
         comment_str=comment_str,
     )
