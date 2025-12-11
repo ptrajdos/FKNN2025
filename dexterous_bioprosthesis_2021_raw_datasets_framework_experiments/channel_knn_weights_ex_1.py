@@ -6,12 +6,17 @@ import string
 import warnings
 from sklearn.base import check_is_fitted
 from sklearn.mixture import GaussianMixture
+from sklearn.neural_network import MLPClassifier
 from weightedknn.estimators.weightedknn import WeightedKNNClassifier
 from kernelnb.estimators.estimatornb import EstimatorNB
 
 from results_storage.results_storage import ResultsStorage
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_sel_nb.attribute_weight_estim_nb_hard import AttributeWeightEstimNBHard
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_weight_estim_nb import AttributeWeightEstimNB
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_sel_nb.attribute_weight_estim_nb_hard import (
+    AttributeWeightEstimNBHard,
+)
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_weight_estim_nb import (
+    AttributeWeightEstimNB,
+)
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.skdict import skdict
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.stats_tools import (
     p_val_matrix_to_vec,
@@ -29,7 +34,7 @@ from sklearn.metrics import (
     make_scorer,
 )
 from sklearn.pipeline import Pipeline
-from sklearn.svm import OneClassSVM
+from sklearn.svm import SVC, OneClassSVM
 from statsmodels.stats.multitest import multipletests
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.parameter_selection.gridsearchcv_oneclass2 import (
     GridSearchCVOneClass2,
@@ -114,9 +119,11 @@ from cycler import cycler
 
 from sklearn.model_selection._search import _estimator_has
 from sklearn.utils._available_if import available_if
-
+from estim_attr_weight.attr_weight_mixin import AttributeWeightMixin
+from sklearn.linear_model import LogisticRegression
 
 N_INTERNAL_SPLITS = 4
+
 
 def _final_estimator_has(attr):
     """Check that final_estimator has `attr`.
@@ -130,6 +137,7 @@ def _final_estimator_has(attr):
 
     return check
 
+
 class PipelinePP(Pipeline):
     @available_if(_final_estimator_has("_predict_proba"))
     def _predict_proba(self, X, **predict_proba_params):
@@ -138,11 +146,14 @@ class PipelinePP(Pipeline):
             Xt = transform.transform(Xt)
         return self.steps[-1][1]._predict_proba(Xt, **predict_proba_params)
 
+
 class GridSearchCVPP(GridSearchCV):
     @available_if(_estimator_has("_predict_proba"))
     def _predict_proba(self, X, weights=None):
         check_is_fitted(self)
-        return self.best_estimator_._predict_proba(X, weights=weights) #Named attrib is important!
+        return self.best_estimator_._predict_proba(
+            X, weights=weights
+        )  # Named attrib is important!
 
 
 class PlotConfigurer:
@@ -227,9 +238,8 @@ def create_extractors():
 
 def generate_tuned_wknn():
 
-    params = {"estimator__n_neighbors": [*range(1,25,2)]}
+    params = {"estimator__n_neighbors": [*range(1, 25, 2)]}
 
-    
     knn_est = WeightedKNNClassifier(
         algorithm="brute",
         weights="distance",
@@ -239,8 +249,11 @@ def generate_tuned_wknn():
 
     bac_scorer = make_scorer(balanced_accuracy_score)
     cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
-    gs = GridSearchCVPP(estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv, refit=True)
+    gs = GridSearchCVPP(
+        estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv, refit=True
+    )
     return gs
+
 
 def generate_tuned_nbgm():
 
@@ -262,6 +275,7 @@ def generate_tuned_nbgm():
     gs = GridSearchCVPP(estimator=nb_est, param_grid=params, scoring=bac_scorer, cv=cv)
     return gs
 
+
 def generate_gauss_nb():
 
     params = {"estimator_parameters__n_components": [1]}
@@ -280,13 +294,54 @@ def generate_gauss_nb():
     gs = GridSearchCVPP(estimator=nb_est, param_grid=params, scoring=bac_scorer, cv=cv)
     return gs
 
+
+class SVCAttributeWeightMixin(AttributeWeightMixin, SVC):
+    pass
+
+def generate_tuned_wSVC_lin():
+
+    params = {"estimator__C": [10**i for i in range(-3, 4, 1)]}
+
+    knn_est = SVCAttributeWeightMixin(probability=True, random_state=0, kernel="linear")
+
+    pipeline = PipelinePP([("scaler", RobustScaler()), ("estimator", knn_est)])
+
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCVPP(
+        estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv, refit=True
+    )
+    return gs
+
+class LRAttributeWeightMixin(AttributeWeightMixin, LogisticRegression):
+    pass
+
+def generate_tuned_logregr():
+
+    params = {"estimator__C": [10**i for i in range(-3, 4, 1)]}
+
+    knn_est = LRAttributeWeightMixin(random_state=0, max_iter=1000)
+
+    pipeline = PipelinePP([("scaler", RobustScaler()), ("estimator", knn_est)])
+
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCVPP(
+        estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv, refit=True
+    )
+    return gs
+
+
 def generate_classifiers():
     classifiers = {
         "WKNN": generate_tuned_wknn(),
         "NBGM": generate_tuned_nbgm(),
         "GaussNB": generate_gauss_nb(),
+        "SVMl": generate_tuned_wSVC_lin(),
+        "LRG": generate_tuned_logregr(),
     }
     return classifiers
+
 
 def rename_classifiers(name):
     renaming = {
@@ -296,8 +351,6 @@ def rename_classifiers(name):
     }
     renamed = renaming.get(name, name)
     return renamed
-
-
 
 
 def warn_unknown_labels(y_true, y_pred):
@@ -324,7 +377,6 @@ def f1_score_m(y_true, y_pred, labels=None, average=None, zero_division=None):
     return f1_score(y_true, y_pred, average="micro")
 
 
-
 def generate_metrics():
     metrics = {
         "ACC": acc_m,
@@ -339,7 +391,8 @@ def generate_base(
     base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
 ):
 
-     return Pipeline([("classifier", deepcopy(base_classifier))])
+    return Pipeline([("classifier", deepcopy(base_classifier))])
+
 
 def generate_d_nb_hard(
     base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
@@ -383,8 +436,7 @@ def generate_methods():
     methods = {
         "B": generate_base,
         "AW": generate_d_nb_soft,  # From CORES 2025 Soft method
-        "AWc":generate_d_nb_hard, # From Cires 2025 Hard method
-        
+        "AWc": generate_d_nb_hard,  # From Cires 2025 Hard method
     }
     return methods
 
@@ -395,7 +447,6 @@ def generate_spoiled_ch_fraction():
         "0": None,  # Random chanell noise
     }
     return spoiled_channels_fractions
-
 
 
 def generate_ocsvm():
@@ -436,7 +487,6 @@ def generate_spoiler_All(snr, channels_spoiled_frac):
             RawSignalsSpoilerSine(
                 snr=snr, channels_spoiled_frac=channels_spoiled_frac, frequency=50
             ),
-            
             RawSignalsSpoilerDamper(
                 snr=snr, channels_spoiled_frac=channels_spoiled_frac
             ),
@@ -752,7 +802,7 @@ def run_experiment(
                                         )
 
                                         y_pred = method.predict(X_test)
-                                        
+
                                         y_gt = y_test
 
                                         for (
@@ -824,6 +874,7 @@ def run_experiment(
         with open(result_file_path, "wb") as fh:
             pickle.dump(results_storage, file=fh)
 
+
 def analyze_results_2C_2(results_directory, output_directory, alpha=0.05):
     configurer.configure_plots()
     result_files = [f for f in os.listdir(results_directory) if f.endswith(".pickle")]
@@ -834,81 +885,82 @@ def analyze_results_2C_2(results_directory, output_directory, alpha=0.05):
 
         results_holder = pickle.load(open(result_file_path, "rb"))
 
-        
         pdf_file_path = os.path.join(
             output_directory, "{}_snr_m2.pdf".format(result_file_basename)
         )
 
-        combined_results_holder = results_holder.stack(CMETHODS=(Dims.METHODS.value,Dims.CLASSIFIERS.value))
+        combined_results_holder = results_holder.stack(
+            CMETHODS=(Dims.METHODS.value, Dims.CLASSIFIERS.value)
+        )
 
         method_names = combined_results_holder["CMETHODS"].values
         n_methods = len(method_names)
-
 
         with PdfPages(pdf_file_path) as pdf:
 
             for metric_name in combined_results_holder[Dims.METRICS.value].values:
 
-                for extractor_name in combined_results_holder[Dims.EXTRACTORS.value].values:
+                for extractor_name in combined_results_holder[
+                    Dims.EXTRACTORS.value
+                ].values:
 
-                        for outlier_detector_name in combined_results_holder[
-                            Dims.DETECTORS.value
-                        ].values:
+                    for outlier_detector_name in combined_results_holder[
+                        Dims.DETECTORS.value
+                    ].values:
 
-                            # metrics x extractors x classifiers x detectors x spoilers x snr x ch_fraction x methods x folds
-                            sub_results = combined_results_holder.loc[
-                                {
-                                    Dims.METRICS.value: metric_name,
-                                    Dims.EXTRACTORS.value: extractor_name,
-                                    Dims.DETECTORS.value: outlier_detector_name,
-                                }
-                            ].to_numpy() # spoilers x cmethods x chan_frac x folds x snrs
-                            
+                        # metrics x extractors x classifiers x detectors x spoilers x snr x ch_fraction x methods x folds
+                        sub_results = combined_results_holder.loc[
+                            {
+                                Dims.METRICS.value: metric_name,
+                                Dims.EXTRACTORS.value: extractor_name,
+                                Dims.DETECTORS.value: outlier_detector_name,
+                            }
+                        ].to_numpy()  # spoilers x cmethods x chan_frac x folds x snrs
 
-                            # cmethods x spoilers x snr x  ch_frac x folds
-                            sub_results = np.moveaxis(
-                                sub_results, [0, 1, 2, 3, 4], [1, 0 ,3 ,4 ,2 ]
+                        # cmethods x spoilers x snr x  ch_frac x folds
+                        sub_results = np.moveaxis(
+                            sub_results, [0, 1, 2, 3, 4], [1, 0, 3, 4, 2]
+                        )
+
+                        sub_results = np.mean(
+                            sub_results, axis=(1, 3)
+                        )  # snr x methods x folds
+
+                        df = pd.DataFrame(columns=["snr", "method", "value"])
+
+                        for i, snr_value in enumerate(
+                            combined_results_holder[Dims.SNR.value].values
+                        ):
+                            for j, method_name in enumerate(method_names):
+                                for k in range(sub_results.shape[2]):
+                                    new_row = pd.DataFrame(
+                                        {
+                                            "snr": snr_value,
+                                            "method": f"{rename_classifiers(method_name[0])}, { rename_classifiers( method_name[1])}",
+                                            "value": sub_results[i, j, k],
+                                        },
+                                        index=[0],
+                                    )
+                                    df = pd.concat([new_row, df.loc[:]]).reset_index(
+                                        drop=True
+                                    )
+                        sns.set(style="whitegrid")
+                        sns.boxplot(
+                            x=df["snr"],
+                            y=df["value"],
+                            hue=df["method"],
+                            palette="husl",
+                        )
+                        plt.title(
+                            "{}, {}, Od:{}".format(
+                                metric_name,
+                                extractor_name,
+                                outlier_detector_name,
                             )
+                        )
 
-                            sub_results = np.mean( 
-                                sub_results, axis=(1, 3)
-                            )  # snr x methods x folds
-
-                            df = pd.DataFrame(columns=["snr", "method", "value"])
-
-                            for i, snr_value in enumerate(
-                                combined_results_holder[Dims.SNR.value].values
-                            ):
-                                for j, method_name in enumerate(method_names):
-                                    for k in range(sub_results.shape[2]):
-                                        new_row = pd.DataFrame(
-                                            {
-                                                "snr": snr_value,
-                                                "method": f"{rename_classifiers(method_name[0])}, { rename_classifiers( method_name[1])}",
-                                                "value": sub_results[i, j, k],
-                                            },
-                                            index=[0],
-                                        )
-                                        df = pd.concat(
-                                            [new_row, df.loc[:]]
-                                        ).reset_index(drop=True)
-                            sns.set(style="whitegrid")
-                            sns.boxplot(
-                                x=df["snr"],
-                                y=df["value"],
-                                hue=df["method"],
-                                palette="husl",
-                            )
-                            plt.title(
-                                "{}, {}, Od:{}".format(
-                                    metric_name,
-                                    extractor_name,
-                                    outlier_detector_name,
-                                )
-                            )
-
-                            pdf.savefig()
-                            plt.close()
+                        pdf.savefig()
+                        plt.close()
 
 
 def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
@@ -955,7 +1007,7 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
             Dims.FOLDS.value,
         )
 
-        results = results.stack(CMETHODS=(Dims.METHODS.value,Dims.CLASSIFIERS.value))
+        results = results.stack(CMETHODS=(Dims.METHODS.value, Dims.CLASSIFIERS.value))
         results = results.transpose(
             Dims.METRICS.value,
             Dims.EXTRACTORS.value,
@@ -967,12 +1019,10 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
             Dims.FOLDS.value,
         )
 
-
         if global_results is None:
 
             # classifier_names = results[Dims.CLASSIFIERS.value].values
             # n_classifiers = len(classifier_names)
-
 
             metric_names = results[Dims.METRICS.value].values
             n_metrics = len(metric_names)
@@ -989,7 +1039,9 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
             ].values
             n_sp_channel_fraction = len(spoiled_channels_fraction)
 
-            method_names = results["CMETHODS"].values #results[Dims.METHODS.value].values #
+            method_names = results[
+                "CMETHODS"
+            ].values  # results[Dims.METHODS.value].values #
             n_methods = len(method_names)
 
             # metrics x extractors x detectors x spoilers x snr x ch_fraction x methods x folds
@@ -1014,9 +1066,7 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
 
         global_results[result_file_id] = results
 
-    pdf_file_path = os.path.join(
-        output_directory, "{}_snr_m2_ranks.pdf".format("ALL")
-    )
+    pdf_file_path = os.path.join(output_directory, "{}_snr_m2_ranks.pdf".format("ALL"))
     report_file_path = os.path.join(
         output_directory, "{}_snr_m2_ranks.md".format("ALL")
     )
@@ -1030,7 +1080,6 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
             for extractor_id, extractor_name in enumerate(extractor_names):
                 print("## {}".format(extractor_name), file=report_file_handler)
 
-                
                 for outlier_detector_id, outlier_detector_name in enumerate(
                     outlier_detector_names
                 ):
@@ -1085,11 +1134,11 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
                     # avg_ranks (methods, snrs)
                     mi = pd.MultiIndex.from_arrays(
                         [
+                            ["{}".format(metric_name) for _ in range(n_methods)],
                             [
-                                "{}".format(metric_name)
-                                for _ in range(n_methods)
+                                f"{ rename_classifiers(m[0])}, { rename_classifiers( m[1])}"
+                                for m in method_names
                             ],
-                            [f"{ rename_classifiers(m[0])}, { rename_classifiers( m[1])}" for m in method_names],
                         ]
                     )
                     av_rnk_df = pd.DataFrame(
@@ -1102,9 +1151,7 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
                     )
 
                     # methods  0 x snrs 1 x ( files 2 x spoilers 3 x ch_frac 4)
-                    sub_results_snr = sub_results_r.reshape(
-                        (n_methods, n_snrs, -1)
-                    )
+                    sub_results_snr = sub_results_r.reshape((n_methods, n_snrs, -1))
                     for snr_id, (snr_name, snr_letter) in enumerate(
                         zip(snrs, string.ascii_letters)
                     ):
@@ -1130,9 +1177,7 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
 
                         p_val_vec = p_val_matrix_to_vec(p_vals)
 
-                        p_val_vec_corrected = multipletests(
-                            p_val_vec, method="hommel"
-                        )
+                        p_val_vec_corrected = multipletests(p_val_vec, method="hommel")
                         corr_p_val_matrix = p_val_vec_to_matrix(
                             p_val_vec_corrected[1],
                             n_methods,
@@ -1157,9 +1202,7 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
                                     + "}"
                                 )
                         av_rnk_df.loc[
-                            "{} {}, snr:{}_T".format(
-                                "Avg Rnk", snr_letter, snr_name
-                            )
+                            "{} {}, snr:{}_T".format("Avg Rnk", snr_letter, snr_name)
                         ] = s_test_outcome
                         av_rnk_df.sort_index(inplace=True)
 
@@ -1172,15 +1215,13 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
         report_file_handler.close()
 
 
-
 if __name__ == "__main__":
 
     np.random.seed(0)
     random.seed(0)
 
-    
     data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022")
-    
+
     data_sets = [data_path0B]
     # data_sets = [ os.path.join( settings.DATAPATH, "tsnre_windowed","A{}_Force_Exp_low_windowed".format(i)) for i in range(1,10) ]
 
@@ -1201,25 +1242,23 @@ if __name__ == "__main__":
     comment_str = """
     Experiment 1.
     """
-    
+
     run_experiment(
         data_sets,
         output_directory,
-        n_splits=10,  
-        n_repeats=4,  
+        n_splits=10,
+        n_repeats=4,
         random_state=0,
         n_jobs=-1,
         overwrite=True,
-        n_channels=16,  
+        n_channels=8,
         progress_log_handler=progress_log_handler,
         comment_str=comment_str,
     )
 
     analysis_functions = [
-        
         analyze_results_2C_2,
         analyze_results_2C_2_ranks,
-        
     ]
     alpha = 0.05
 

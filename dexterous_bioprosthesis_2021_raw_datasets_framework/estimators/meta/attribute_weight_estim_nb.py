@@ -217,7 +217,7 @@ class AttributeWeightEstimNB(BaseEstimator, ClassifierMixin):
         probas = np.zeros((n_objects, n_classes))
         for sample_idx in range(n_objects):
             probas[sample_idx, :] = self.base_classifier_._predict_proba(
-                X[sample_idx : sample_idx + 1, :], attribute_weights[sample_idx, :]
+                X[sample_idx : sample_idx + 1, :], weights= attribute_weights[sample_idx, :]
             )
 
         return probas
