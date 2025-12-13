@@ -1226,7 +1226,7 @@ if __name__ == "__main__":
     # data_sets = [ os.path.join( settings.DATAPATH, "tsnre_windowed","A{}_Force_Exp_low_windowed".format(i)) for i in range(1,10) ]
 
     subjects = list([*range(1, 12)])  # ATTENTION
-    experiments = list([*range(1, 2)])  # up to 4
+    experiments = list([*range(1, 4)])  # up to 4
     labels = ["restimulus"]
 
     db_name = "db3"
