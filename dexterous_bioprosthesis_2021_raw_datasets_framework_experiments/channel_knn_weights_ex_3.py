@@ -6,6 +6,8 @@ import string
 import warnings
 from sklearn.base import check_is_fitted
 from weightedknn.estimators.weightedknn import WeightedKNNClassifier
+from sklearn.svm import SVC
+from sklearn.neural_network import MLPClassifier
 
 
 from results_storage.results_storage import ResultsStorage
@@ -116,6 +118,7 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework_experiments import sett
 
 from sklearn.model_selection import (
     GridSearchCV,
+    RepeatedKFold,
     RepeatedStratifiedKFold,
     StratifiedKFold,
 )
@@ -447,8 +450,11 @@ def generate_d_nb_soft(
     )
     return pipeline
 
-def generate_random_forest(base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None):
-    
+
+def generate_random_forest(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
+
     params = {
         "max_depth": [None, 10, 20],
         "min_samples_split": [2, 5, 10],
@@ -461,7 +467,10 @@ def generate_random_forest(base_classifier, channel_features, group_sizes=[2], o
     gs = GridSearchCVPP(estimator=rf_est, param_grid=params, scoring=bac_scorer, cv=cv)
     return gs
 
-def generate_ecoc(base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None):
+
+def generate_ecoc(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
     params = {
         "estimator__max_depth": [None, 10, 20],
         "estimator__min_samples_split": [2, 5, 10],
@@ -474,15 +483,58 @@ def generate_ecoc(base_classifier, channel_features, group_sizes=[2], outlier_de
     )
     bac_scorer = make_scorer(balanced_accuracy_score)
     cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
-    gs = GridSearchCVPP(estimator=ecoc_est, param_grid=params, scoring=bac_scorer, cv=cv)
+    gs = GridSearchCVPP(
+        estimator=ecoc_est, param_grid=params, scoring=bac_scorer, cv=cv
+    )
     return gs
+
+
+def generate_SVM_rbf(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
+    params = {"estimator__C": [10**i for i in range(-3, 4, 1)]}
+
+    knn_est = SVC(probability=True, random_state=0, kernel="rbf")
+
+    pipeline = Pipeline([("scaler", RobustScaler()), ("estimator", knn_est)])
+
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCVPP(
+        estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv, refit=True
+    )
+    return gs
+
+
+def generate_MLP(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
+    params = {
+        "estimator__hidden_layer_sizes": [(50,), (100,), (50, 25), (100, 50), (100, 50, 25)],
+        "estimator__alpha": [1e-4, 1e-3, 1e-2],
+        "estimator__learning_rate_init": [ 3e-4, 1e-3, 1e-2],
+    }
+
+    knn_est = MLPClassifier(random_state=0, max_iter=500,early_stopping=True)
+
+    pipeline = Pipeline([("scaler", RobustScaler()), ("estimator", knn_est)])
+
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCVPP(
+        estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv, refit=True
+    )
+    return gs
+
 
 # TODO uncomment
 def generate_methods():
     methods = {
         "B": generate_base,
         "RF": generate_random_forest,
-        "ECOC": generate_ecoc,
+        # "ECOC": generate_ecoc,
+        "SVM": generate_SVM_rbf,
+        "MLP": generate_MLP,
         "DO": generate_desp_outlier_full,  # FROM CLDD 2024 K=1
         "DOa": generate_desp_outlier_full_soft_mean,  # Soft Weighting K=1
         "AW": generate_d_nb_soft,  # From CORES 2025 soft version
@@ -684,7 +736,8 @@ def run_experiment(
     methods = generate_methods()
     n_methods = len(methods)
 
-    skf = RepeatedStratifiedKFold(
+    #ATTENTION -- REPEATED K-FOLD
+    skf = RepeatedKFold(
         n_splits=n_splits, n_repeats=n_repeats, random_state=random_state
     )
     n_folds = skf.get_n_splits()
@@ -1322,7 +1375,7 @@ if __name__ == "__main__":
         random_state=0,
         n_jobs=-1,
         overwrite=True,
-        n_channels=8,
+        n_channels=12,
         progress_log_handler=progress_log_handler,
         comment_str=comment_str,
     )

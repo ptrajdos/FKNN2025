@@ -89,6 +89,7 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework_experiments import sett
 
 from sklearn.model_selection import (
     GridSearchCV,
+    RepeatedKFold,
     RepeatedStratifiedKFold,
     StratifiedKFold,
 )
@@ -632,7 +633,7 @@ def run_experiment(
     methods = generate_methods()
     n_methods = len(methods)
 
-    skf = RepeatedStratifiedKFold(
+    skf = RepeatedKFold(
         n_splits=n_splits, n_repeats=n_repeats, random_state=random_state
     )
     n_folds = skf.get_n_splits()
@@ -1266,7 +1267,7 @@ if __name__ == "__main__":
         random_state=0,
         n_jobs=-1,
         overwrite=True,
-        n_channels=8,
+        n_channels=12,
         progress_log_handler=progress_log_handler,
         comment_str=comment_str,
     )
