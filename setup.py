@@ -34,6 +34,7 @@ setup(
                 'results-storage @ git+https://github.com/ptrajdos/results_storge.git',
                 'kernelnb @ git+https://github.com/ptrajdos/KernelNB.git',
                 'estim_attr_weight @ git+https://github.com/ptrajdos/estim_attr_weight.git',
+                'dexterous_bioprosthesis_2021_raw_datasets @ git+https://github.com/ptrajdos/dexterous-bioprosthesis-2021-raw-dataset.git',
                 
                 
         ],

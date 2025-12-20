@@ -45,36 +45,36 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.preprocessing.one_class
 from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals.raw_signals_io import (
     read_signals_from_dirs,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals_filters.raw_signals_filter_channel_idx import (
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_filters.raw_signals_filter_channel_idx import (
     RawSignalsFilterChannelIdx,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals_spoilers.raw_signals_spoiler_multiple import (
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_multiple import (
     RawSignalsSpoilerMultiple,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals_spoilers.raw_signals_spoiler_sine import (
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_sine import (
     RawSignalsSpoilerSine,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.set_creators.np_signal_extractors.np_signal_extractor_mav import (
+from dexterous_bioprosthesis_2021_raw_datasets.set_creators.np_signal_extractors.np_signal_extractor_mav import (
     NpSignalExtractorMav,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.set_creators.np_signal_extractors.np_signal_extractor_ssc import (
+from dexterous_bioprosthesis_2021_raw_datasets.set_creators.np_signal_extractors.np_signal_extractor_ssc import (
     NpSignalExtractorSsc,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.set_creators.set_creator_dwt import (
+from dexterous_bioprosthesis_2021_raw_datasets.set_creators.set_creator_dwt import (
     SetCreatorDWT,
 )
 
 
-from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals_spoilers.raw_signals_spoiler_damper import (
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_damper import (
     RawSignalsSpoilerDamper,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals_spoilers.raw_signals_spoiler_gauss import (
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_gauss import (
     RawSignalsSpoilerGauss,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals_spoilers.raw_signals_spoiler_multiple import (
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_multiple import (
     RawSignalsSpoilerMultiple,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals_spoilers.raw_signals_spoiler_cubicclipper import (
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_cubicclipper import (
     RawSignalsSpoilerCubicClipper,
 )
 
