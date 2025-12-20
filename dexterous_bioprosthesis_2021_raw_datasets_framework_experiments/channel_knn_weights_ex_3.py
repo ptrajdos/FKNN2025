@@ -151,6 +151,9 @@ from sklearn.model_selection._search import _estimator_has
 from sklearn.utils._available_if import available_if
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OutputCodeClassifier
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_filters.raw_signals_filter_window_segmentation_fs import (
+    RawSignalsFilterWindowSegmentationFS,
+)
 
 N_INTERNAL_SPLITS = 4
 
@@ -809,6 +812,10 @@ def run_experiment(
 
             raw_train = raw_set[train_idx]
             raw_test = raw_set[test_idx]
+
+            filter = RawSignalsFilterWindowSegmentationFS(200,50)
+            raw_train = filter.fit_transform(raw_train)
+            raw_test = filter.transform(raw_test)
 
             fold_res = []
 

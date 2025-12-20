@@ -103,6 +103,10 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework_experiments.tools impor
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.progressparallel import (
     ProgressParallel,
 )
+
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_filters.raw_signals_filter_window_segmentation_fs import (
+    RawSignalsFilterWindowSegmentationFS,
+)
 from joblib import delayed
 from copy import deepcopy
 
@@ -702,6 +706,10 @@ def run_experiment(
 
             raw_train = raw_set[train_idx]
             raw_test = raw_set[test_idx]
+
+            filter = RawSignalsFilterWindowSegmentationFS(200,50)
+            raw_train = filter.fit_transform(raw_train)
+            raw_test = filter.transform(raw_test)
 
             fold_res = []
 
