@@ -42,8 +42,8 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.paramet
 from dexterous_bioprosthesis_2021_raw_datasets_framework.preprocessing.one_class.outlier_generators.outlier_generator_uniform import (
     OutlierGeneratorUniform,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.raw_signals.raw_signals_io import (
-    read_signals_from_dirs,
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals.raw_signals_io import (
+    read_signals_from_dirs, read_signals_from_archive
 )
 from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_filters.raw_signals_filter_channel_idx import (
     RawSignalsFilterChannelIdx,
@@ -586,7 +586,7 @@ class Dims(Enum):
 
 
 def run_experiment(
-    input_data_dir_list,
+    datasets,
     output_directory,
     n_splits=10,
     n_repeats=3,
@@ -605,11 +605,6 @@ def run_experiment(
     with open(comment_file, "w") as f:
         f.write(comment_str)
         f.write("Start time: {}\n".format(datetime.datetime.now()))
-        f.write("\n")
-        f.write("Data sets:\n")
-        for data_set in data_sets:
-            f.write(data_set)
-            f.write("\n")
         f.write("\n")
         f.write("Function Parameters:\n")
         f.write(f"n_splits: {n_splits}\n")
@@ -662,24 +657,11 @@ def run_experiment(
         Dims.FOLDS.value: [k for k in range(n_folds)],
     }
 
-    for in_dir in tqdm(input_data_dir_list, desc="Data sets"):
+    for experiment_name, archive_path, input_data_regex in tqdm(datasets, desc="Data sets"):
 
         # metrics x extractors x classifiers x detectors x spoilers x snr x ch_fraction x methods x folds
-        results = np.zeros(
-            (
-                n_metrics,
-                n_extr,
-                n_classifiers,
-                n_detector_generators,
-                n_spoiler_generators,
-                n_snrs,
-                n_channel_spoil_fraction,
-                n_methods,
-                n_folds,
-            )
-        )
-
-        set_name = os.path.basename(in_dir)
+       
+        set_name = experiment_name
 
         result_file_path = os.path.join(output_directory, "{}.pickle".format(set_name))
 
@@ -689,7 +671,10 @@ def run_experiment(
             print("Skipping {} !".format(set_name))
             continue
 
-        pre_set = read_signals_from_dirs(in_dir)
+        pre_set = read_signals_from_archive(
+            archive_path= archive_path,
+            filter_regex= input_data_regex,
+        )
         raw_set = pre_set["accepted"]
 
         if n_channels is not None:
@@ -1221,26 +1206,38 @@ if __name__ == "__main__":
     np.random.seed(0)
     random.seed(0)
 
-    data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022")
+    data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022.zip")
+    data_sets = []
+    data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
 
-    data_sets = [data_path0B]
-    # data_sets = [ os.path.join( settings.DATAPATH, "tsnre_windowed","A{}_Force_Exp_low_windowed".format(i)) for i in range(1,10) ]
+    tsnre_path = os.path.join(settings.DATAPATH, "tsnre_windowed.zip")
+    # for i in range(1, 10):
+    #     data_sets.append(
+    #         (
+    #             "A{}_Force_Exp_low_windowed".format(i),
+    #             tsnre_path,
+    #             ".*/A{}_Force_Exp_low_windowed/.*".format(i),
+    #         )
+    #     )
+
 
     subjects = list([*range(1, 12)])  # ATTENTION
     experiments = list([*range(1, 4)])  # up to 4
     labels = ["restimulus"]
 
     db_name = "db3"
-
-    # data_sets = []
+    db_archive_path = os.path.join(settings.DATAPATH, f"{db_name}.zip")
+    
     # for experiment in experiments:
     #     for label in labels:
     #         for su in subjects:
     #             data_sets.append(
-    #                 os.path.join(
-    #                     settings.DATAPATH, db_name,  f"S{su}_E{experiment}_A1_{label}")
+    #                 (
+    #                     f"S{su}_E{experiment}_A1_{label}",
+    #                     db_archive_path,
+    #                     f".*/S{su}_E{experiment}_A1_{label}/.*",
     #                 )
-
+    #             )
     output_directory = os.path.join(
         settings.EXPERIMENTS_RESULTS_PATH,
         "./results_channel_knn_weights_1/",
