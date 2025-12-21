@@ -74,8 +74,9 @@ from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_
 from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_multiple import (
     RawSignalsSpoilerMultiple,
 )
-from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_cubicclipper import (
-    RawSignalsSpoilerCubicClipper,
+
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_rappam import (
+    RawSignalsSpoilerRappAM,
 )
 
 
@@ -495,7 +496,7 @@ def generate_spoiler_All(snr, channels_spoiled_frac):
             RawSignalsSpoilerDamper(
                 snr=snr, channels_spoiled_frac=channels_spoiled_frac
             ),
-            RawSignalsSpoilerCubicClipper(
+            RawSignalsSpoilerRappAM(
                 snr=snr, channels_spoiled_frac=channels_spoiled_frac
             ),
             RawSignalsSpoilerGauss(
@@ -537,7 +538,7 @@ def generate_spoiler_damper(snr, channels_spoiled_frac):
 def generate_spoiler_clipper(snr, channels_spoiled_frac):
     return RawSignalsSpoilerMultiple(
         spoilers=[
-            RawSignalsSpoilerCubicClipper(
+            RawSignalsSpoilerRappAM(
                 snr=snr, channels_spoiled_frac=channels_spoiled_frac
             )
         ],
