@@ -814,7 +814,7 @@ def run_experiment(
             raw_train = raw_set[train_idx]
             raw_test = raw_set[test_idx]
 
-            filter = RawSignalsFilterWindowSegmentationFS(200,50)
+            filter = RawSignalsFilterWindowSegmentationFS(250,125)
             raw_train = filter.fit_transform(raw_train)
             raw_test = filter.transform(raw_test)
 

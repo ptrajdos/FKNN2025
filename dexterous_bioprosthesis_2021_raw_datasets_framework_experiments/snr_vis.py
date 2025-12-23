@@ -170,7 +170,7 @@ def run_experiment(
             logging.debug(f"Skipping: {set_name}")
             continue
         raw_set = raw_set[0:1]
-        filter = RawSignalsFilterWindowSegmentationFS(200, 50)
+        filter = RawSignalsFilterWindowSegmentationFS(250, 125)
         filtered_set = filter.fit_transform(raw_set)
 
         with PdfPages(result_file_path) as pdf:
