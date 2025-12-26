@@ -335,9 +335,9 @@ def generate_fknn(
         "estimator__n_neighbors": [None, *range(1, 25, 2)],
         "estimator__inlier_score_transformer": [
             None,
-            InlierScoreTransformerLowPara(),
-            InlierScoreTransformerScaledSigmoid(),
-            InlierScoreTransformerSmoothstep(),
+            # InlierScoreTransformerLowPara(),
+            # InlierScoreTransformerScaledSigmoid(),
+            # InlierScoreTransformerSmoothstep(),
         ],
     }
     bac_scorer = make_scorer(balanced_accuracy_score)
@@ -542,9 +542,9 @@ def generate_methods():
         "DO": generate_desp_outlier_full,  # FROM CLDD 2024 K=1
         "DOa": generate_desp_outlier_full_soft_mean,  # Soft Weighting K=1
         "AW": generate_d_nb_soft,  # From CORES 2025 soft version
-        "AWc": generate_d_nb_hard,  # From CORES 2025 hard version!
+        # "AWc": generate_d_nb_hard,  # From CORES 2025 hard version!
         "FKNN": generate_fknn,
-        "FKNNc": generate_fknn_crisp,
+        # "FKNNc": generate_fknn_crisp,
     }
     return methods
 
@@ -814,7 +814,7 @@ def run_experiment(
             raw_train = raw_set[train_idx]
             raw_test = raw_set[test_idx]
 
-            filter = RawSignalsFilterWindowSegmentationFS(250,125)
+            filter = RawSignalsFilterWindowSegmentationFS(500,250)
             raw_train = filter.fit_transform(raw_train)
             raw_test = filter.transform(raw_test)
 
