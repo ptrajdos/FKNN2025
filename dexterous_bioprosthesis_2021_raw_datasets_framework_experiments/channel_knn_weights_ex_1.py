@@ -633,7 +633,7 @@ def run_experiment(
     methods = generate_methods()
     n_methods = len(methods)
 
-    skf = RepeatedKFold(
+    skf = RepeatedStratifiedKFold(
         n_splits=n_splits, n_repeats=n_repeats, random_state=random_state
     )
     n_folds = skf.get_n_splits()
@@ -1271,8 +1271,8 @@ if __name__ == "__main__":
     run_experiment(
         data_sets,
         output_directory,
-        n_splits=10,
-        n_repeats=4,
+        n_splits=5,
+        n_repeats=6,
         random_state=0,
         n_jobs=-1,
         overwrite=True,

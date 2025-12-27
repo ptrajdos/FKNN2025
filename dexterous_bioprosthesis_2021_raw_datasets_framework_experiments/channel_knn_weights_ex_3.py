@@ -736,7 +736,7 @@ def run_experiment(
     n_methods = len(methods)
 
     #ATTENTION -- REPEATED K-FOLD
-    skf = RepeatedKFold(
+    skf = RepeatedStratifiedKFold(
         n_splits=n_splits, n_repeats=n_repeats, random_state=random_state
     )
     n_folds = skf.get_n_splits()
@@ -1328,20 +1328,20 @@ if __name__ == "__main__":
 
     data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022.zip")
     data_sets = []
-    data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
+    # data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
 
-    # tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
-    # subjects = list([*range(1, 10)])
-    # force_levels = ["low", "med", "high"]
-    # for i in subjects:
-    #     for force_level in force_levels:
-    #         data_sets.append(
-    #             (
-    #                 f"A{i}_Force_Exp_{force_level}",
-    #                 tsnre_path,
-    #                 f".*/A{i}_Force_Exp_{force_level}/.*",
-    #             )
-    #         )
+    tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
+    subjects = list([*range(1, 10)])
+    force_levels = ["low", "med", "high"]
+    for i in subjects:
+        for force_level in force_levels:
+            data_sets.append(
+                (
+                    f"A{i}_Force_Exp_{force_level}",
+                    tsnre_path,
+                    f".*/A{i}_Force_Exp_{force_level}/.*",
+                )
+            )
 
 
     subjects = list([*range(1, 12)])  # ATTENTION
@@ -1382,8 +1382,8 @@ if __name__ == "__main__":
     run_experiment(
         data_sets,
         output_directory,
-        n_splits=10,
-        n_repeats=4,
+        n_splits=5,
+        n_repeats=6,
         random_state=0,
         n_jobs=-1,
         overwrite=True,
