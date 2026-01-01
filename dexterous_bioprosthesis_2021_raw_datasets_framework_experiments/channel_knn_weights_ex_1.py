@@ -1098,6 +1098,7 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
                     sub_results_r = np.moveaxis(
                         sub_results, [0, 1, 2, 3, 4, 5], [2, 3, 1, 4, 0, 5]
                     )
+                    sub_results_r = np.mean(sub_results_r, axis=-1)
                     sub_results = sub_results_r.reshape((n_methods, n_snrs, -1))
 
                     ranked_data = rankdata(sub_results, axis=0)

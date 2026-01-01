@@ -1202,6 +1202,8 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                             sub_results_r = np.moveaxis(
                                 sub_results, [0, 1, 2, 3, 4, 5], [2, 3, 1, 4, 0, 5]
                             )
+                            
+                            sub_results_r = np.mean(sub_results_r, axis=-1)
                             sub_results = sub_results_r.reshape((n_methods, n_snrs, -1))
 
                             ranked_data = rankdata(sub_results, axis=0)
@@ -1328,20 +1330,20 @@ if __name__ == "__main__":
 
     data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022.zip")
     data_sets = []
-    # data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
+    data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
 
-    tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
-    subjects = list([*range(1, 10)])
-    force_levels = ["low", "med", "high"]
-    for i in subjects:
-        for force_level in force_levels:
-            data_sets.append(
-                (
-                    f"A{i}_Force_Exp_{force_level}",
-                    tsnre_path,
-                    f".*/A{i}_Force_Exp_{force_level}/.*",
-                )
-            )
+    # tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
+    # subjects = list([*range(1, 10)])
+    # force_levels = ["low", "med", "high"]
+    # for i in subjects:
+    #     for force_level in force_levels:
+    #         data_sets.append(
+    #             (
+    #                 f"A{i}_Force_Exp_{force_level}",
+    #                 tsnre_path,
+    #                 f".*/A{i}_Force_Exp_{force_level}/.*",
+    #             )
+    #         )
 
 
     subjects = list([*range(1, 12)])  # ATTENTION
