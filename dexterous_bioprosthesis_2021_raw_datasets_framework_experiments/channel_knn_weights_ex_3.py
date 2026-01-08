@@ -1,5 +1,6 @@
 import datetime
 from enum import Enum
+import gc
 import logging
 import os
 import string
@@ -827,6 +828,9 @@ def run_experiment(
 
                 X_train, y_train, _ = extractor.fit_transform(raw_train)
                 channel_features = extractor.get_channel_attribs_indices()
+                #FIXME -- Dirty fix. There is only one extractor now. To save memory let us do:
+                del raw_train
+                gc.collect()
 
                 for base_classifier_name in ResultsStorage.coords_need_recalc(
                     results_storage, Dims.CLASSIFIERS.value

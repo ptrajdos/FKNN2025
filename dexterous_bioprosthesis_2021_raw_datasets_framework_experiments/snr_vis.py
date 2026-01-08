@@ -217,7 +217,7 @@ def run_experiment(
                         spoiled_signal.to_numpy()[:, ch_idx],
                         color="red",
                         alpha=0.3,
-                        label="spoiled",
+                        label="contaminated",
                     )
 
                     ax[row_idx, col_idx].grid(True, linestyle="--", alpha=0.7)
