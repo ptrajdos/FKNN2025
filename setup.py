@@ -35,8 +35,12 @@ setup(
                 'kernelnb @ git+https://github.com/ptrajdos/KernelNB.git',
                 'estim_attr_weight @ git+https://github.com/ptrajdos/estim_attr_weight.git',
                 'dexterous_bioprosthesis_2021_raw_datasets @ git+https://github.com/ptrajdos/dexterous-bioprosthesis-2021-raw-dataset.git',
+                'Pympler==1.1',
+                'muppy==1.0.1',
+                'memray==1.19.1',
                 
                 
         ],
+        python_requires='>=3.11, <3.12',
         test_suite='test'
         )
