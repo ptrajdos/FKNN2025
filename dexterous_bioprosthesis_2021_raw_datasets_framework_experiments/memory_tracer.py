@@ -101,7 +101,7 @@ def write_tracemalloc_snapshot(tracemalloc_file, limit=10, filters=None):
 def periodic_tracker(report_file, tracemalloc_file, interval, tracemalloc_filters):
     while True:
         write_snapshot(report_file)
-        write_tracemalloc_snapshot(tracemalloc_file, filters=tracemalloc_filters)
+        # write_tracemalloc_snapshot(tracemalloc_file, filters=tracemalloc_filters)
         time.sleep(interval)
 
 

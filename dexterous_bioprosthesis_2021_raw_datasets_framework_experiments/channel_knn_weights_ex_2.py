@@ -640,6 +640,7 @@ def run_experiment(
     append=True,
     progress_log_handler=None,
     comment_str="",
+    batch_size=10,
 ):
 
     os.makedirs(output_directory, exist_ok=True)
@@ -835,13 +836,16 @@ def run_experiment(
                                         )
 
                                         # TODO no Oracle. Leave like that?
-                                        try:
-                                            y_pred = method.predict(X_test, y_test)
-                                        except TypeError:
-                                            y_pred = method.predict(X_test)
-                                        except Exception as e:
-                                            raise e
-
+                                        y_pred_all = []
+                                        for i in range(0,len(X_test),batch_size):
+                                            try:
+                                                y_pred_b = method.predict(X_test[i:i + batch_size], y_test[i:i+batch_size])
+                                            except TypeError:
+                                                y_pred_b = method.predict(X_test[i:i+batch_size])
+                                            except Exception as e:
+                                                raise e
+                                            y_pred_all.append(y_pred_b)
+                                        y_pred = np.concatenate(y_pred_all,axis=0)
                                         y_gt = y_test
 
                                         for (
@@ -1261,8 +1265,10 @@ if __name__ == "__main__":
     random.seed(0)
 
     data_path0B = os.path.join(settings.DATAPATH, "MK_10_03_2022.zip")
+    data_path1 = os.path.join(settings.DATAPATH, "Barbara.tar.xz")
     data_sets = []
-    data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
+    # data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
+    data_sets.append(("Barbara", data_path1, "./*"))
 
     # tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
     # subjects = list([*range(1, 10)])
@@ -1321,7 +1327,7 @@ if __name__ == "__main__":
         random_state=0,
         n_jobs=-1,
         overwrite=True,
-        n_channels=12,
+        n_channels=None,
         progress_log_handler=progress_log_handler,
         comment_str=comment_str,
     )
