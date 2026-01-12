@@ -784,6 +784,7 @@ def run_experiment(
         pre_set = read_signals_from_archive(
             archive_path= archive_path,
             filter_regex= input_data_regex,
+            dtype=np.float32,
         )
         raw_set = pre_set["accepted"]
         if len(raw_set) == 0:
