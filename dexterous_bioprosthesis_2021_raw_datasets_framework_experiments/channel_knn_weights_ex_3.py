@@ -442,6 +442,7 @@ def generate_d_nb_soft(
 ):
     pipeline = Pipeline(
         [
+            ("scaler", RobustScaler()),
             (
                 "estimator",
                 AttributeWeightEstimNB(
