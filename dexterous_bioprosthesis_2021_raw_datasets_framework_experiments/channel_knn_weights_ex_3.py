@@ -336,9 +336,9 @@ def generate_fknn(
         "estimator__n_neighbors": [None, *range(1, 25, 2)],
         "estimator__inlier_score_transformer": [
             None,
-            # InlierScoreTransformerLowPara(),
-            # InlierScoreTransformerScaledSigmoid(),
-            # InlierScoreTransformerSmoothstep(),
+            InlierScoreTransformerLowPara(),
+            InlierScoreTransformerScaledSigmoid(),
+            InlierScoreTransformerSmoothstep(),
         ],
     }
     bac_scorer = make_scorer(balanced_accuracy_score)
