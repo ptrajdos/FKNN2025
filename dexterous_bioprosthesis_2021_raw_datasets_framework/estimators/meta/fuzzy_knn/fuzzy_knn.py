@@ -295,7 +295,51 @@ class FuzzyKNN(BaseEstimator, ClassifierMixin):
             inlier_score_matrix[:,np.newaxis,:, np.newaxis],
             sim_class_matrix,
         )
+        #TODO make subclass that uses fuzzy s-norm to combine channel predictions
         channel_combined_predictions = self._combine_channel_predictions(inference_matrix)
         class_predictions = self._get_class_predictions(channel_combined_predictions)
 
         return class_predictions
+
+class FuzzyKNN2(FuzzyKNN):
+    """
+    Fuzzy K-Nearest Neighbors classifier with weighted features during prediction.
+    """
+
+    def __init__(
+        self,
+        n_neighbors=5,
+        outlier_detector_prototype=None,
+        random_state=0,
+        channel_features=None,
+        similarity_calc=None,
+        t_norm=None,
+        inlier_score_transformer=None,
+    ) -> None:
+        super().__init__(
+            n_neighbors=n_neighbors,
+            outlier_detector_prototype=outlier_detector_prototype,
+            random_state=random_state,
+            channel_features=channel_features,
+            similarity_calc=similarity_calc,
+            t_norm=t_norm,
+            inlier_score_transformer=inlier_score_transformer,
+        )
+
+    def _combine_channel_predictions(self, inference_matrix):
+        """
+        Combine channel predictions.
+
+        Parameters
+        ----------
+        inference_matrix : array-like, shape (n_X_samples, n_X_fit_samples, n_channels, n_classes)
+            The inference matrix for each channel.
+
+        Returns
+        -------
+        array-like, shape (n_X_samples, n_X_fit_samples, n_classes)
+            The predictions averaged over channel supports.
+        """
+        combined_predictions = 1.0 - np.prod(1.0 - inference_matrix, axis=2)
+        return combined_predictions
+        
