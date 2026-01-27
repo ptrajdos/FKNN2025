@@ -31,7 +31,7 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.des.des
     DespOutlierFull2,
 )
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.fuzzy_knn import (
-    FuzzyKNN, FuzzyKNN2
+    FuzzyKNN, FuzzyKNN2, FuzzyKNN3
 )
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_crisp import (
     InlierScoreTransformerCrisp,
@@ -380,6 +380,40 @@ def generate_fknn2(
     gs = GridSearchCV(estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv)
     return gs
 
+def generate_fknn3(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
+    """
+    Proposed Fuzzy KNN.
+    """
+    pipeline = Pipeline(
+        [
+            ("scaler", RobustScaler()),
+            (
+                "estimator",
+                FuzzyKNN3(
+                    outlier_detector_prototype=deepcopy(outlier_detector_prototype),
+                    channel_features=channel_features,
+                    random_state=0,
+                    n_neighbors=5,
+                ),
+            ),
+        ]
+    )
+    params = {
+        "estimator__n_neighbors": [None, *range(1, 25, 2)],
+        "estimator__inlier_score_transformer": [
+            None,
+            # InlierScoreTransformerLowPara(),
+            # InlierScoreTransformerScaledSigmoid(),
+            # InlierScoreTransformerSmoothstep(),
+        ],
+    }
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCV(estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv)
+    return gs
+
 
 def generate_fknn_crisp(
     base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
@@ -581,6 +615,7 @@ def generate_methods():
         # "AWc": generate_d_nb_hard,  # From CORES 2025 hard version!
         "FKNN": generate_fknn,
         "FKNN2": generate_fknn2,
+        "FKNN3": generate_fknn3,
         # "FKNNc": generate_fknn_crisp,
     }
     return methods
