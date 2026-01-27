@@ -157,7 +157,7 @@ from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_filters.raw_signals_f
     RawSignalsFilterWindowSegmentationFS,
 )
 
-N_INTERNAL_SPLITS = 4
+N_INTERNAL_SPLITS = 3
 
 
 class GridSearchCVPP(GridSearchCV):
@@ -336,9 +336,9 @@ def generate_fknn(
         "estimator__n_neighbors": [None, *range(1, 25, 2)],
         "estimator__inlier_score_transformer": [
             None,
-            InlierScoreTransformerLowPara(),
-            InlierScoreTransformerScaledSigmoid(),
-            InlierScoreTransformerSmoothstep(),
+            # InlierScoreTransformerLowPara(),
+            # InlierScoreTransformerScaledSigmoid(),
+            # InlierScoreTransformerSmoothstep(),
         ],
     }
     bac_scorer = make_scorer(balanced_accuracy_score)
@@ -370,9 +370,9 @@ def generate_fknn2(
         "estimator__n_neighbors": [None, *range(1, 25, 2)],
         "estimator__inlier_score_transformer": [
             None,
-            InlierScoreTransformerLowPara(),
-            InlierScoreTransformerScaledSigmoid(),
-            InlierScoreTransformerSmoothstep(),
+            # InlierScoreTransformerLowPara(),
+            # InlierScoreTransformerScaledSigmoid(),
+            # InlierScoreTransformerSmoothstep(),
         ],
     }
     bac_scorer = make_scorer(balanced_accuracy_score)
@@ -849,7 +849,7 @@ def run_experiment(
         def compute(fold_idx, train_idx, test_idx):
             # For tracing warnings inside multiprocessing
             warnings.showwarning = warn_with_traceback
-
+            #TODO I probably need a filter to exclude channels without signal!
             raw_train = raw_set[train_idx]
             raw_test = raw_set[test_idx]
 
@@ -1377,7 +1377,7 @@ if __name__ == "__main__":
     data_path1 = os.path.join(settings.DATAPATH, "Barbara.tar.xz")
     data_sets = []
     # data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
-    data_sets.append(("Barbara", data_path1, "./*"))
+    # data_sets.append(("Barbara", data_path1, "./*"))
 
     # tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
     # subjects = list([*range(1, 10)])
@@ -1393,23 +1393,23 @@ if __name__ == "__main__":
     #         )
 
 
-    subjects = list([*range(1, 12)])  # ATTENTION
+    subjects = list([*range(6, 7)])  # ATTENTION
     experiments = list([*range(1, 4)])  # up to 4
     labels = ["restimulus"]
 
-    db_name = "db3"
+    db_name = "db3_6"
     db_archive_path = os.path.join(settings.DATAPATH, f"{db_name}.zip")
     
-    # for experiment in experiments:
-    #     for label in labels:
-    #         for su in subjects:
-    #             data_sets.append(
-    #                 (
-    #                     f"S{su}_E{experiment}_A1_{label}",
-    #                     db_archive_path,
-    #                     f".*/S{su}_E{experiment}_A1_{label}/.*",
-    #                 )
-    #             )
+    for experiment in experiments:
+        for label in labels:
+            for su in subjects:
+                data_sets.append(
+                    (
+                        f"S{su}_E{experiment}_A1_{label}",
+                        db_archive_path,
+                        f".*/S{su}_E{experiment}_A1_{label}/.*",
+                    )
+                )
 
     output_directory = os.path.join(
         settings.EXPERIMENTS_RESULTS_PATH,
@@ -1432,7 +1432,7 @@ if __name__ == "__main__":
         data_sets,
         output_directory,
         n_splits=5,
-        n_repeats=6,
+        n_repeats=2, #should be 6
         random_state=0,
         n_jobs=-1,
         overwrite=True,
