@@ -1393,23 +1393,23 @@ if __name__ == "__main__":
     #         )
 
 
-    subjects = list([*range(6, 7)])  # ATTENTION
+    subjects = list([*range(1, 12)])  # ATTENTION
     experiments = list([*range(1, 4)])  # up to 4
     labels = ["restimulus"]
 
-    db_name = "db3_6"
+    db_name = "db3"
     db_archive_path = os.path.join(settings.DATAPATH, f"{db_name}.zip")
     
-    for experiment in experiments:
-        for label in labels:
-            for su in subjects:
-                data_sets.append(
-                    (
-                        f"S{su}_E{experiment}_A1_{label}",
-                        db_archive_path,
-                        f".*/S{su}_E{experiment}_A1_{label}/.*",
-                    )
-                )
+    # for experiment in experiments:
+    #     for label in labels:
+    #         for su in subjects:
+    #             data_sets.append(
+    #                 (
+    #                     f"S{su}_E{experiment}_A1_{label}",
+    #                     db_archive_path,
+    #                     f".*/S{su}_E{experiment}_A1_{label}/.*",
+    #                 )
+    #             )
 
     output_directory = os.path.join(
         settings.EXPERIMENTS_RESULTS_PATH,
