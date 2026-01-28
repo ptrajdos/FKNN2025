@@ -1433,18 +1433,18 @@ if __name__ == "__main__":
     # data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
     # data_sets.append(("Barbara", data_path1, "./*"))
 
-    # tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
-    # subjects = list([*range(1, 10)])
-    # force_levels = ["low", "med", "high"]
-    # for i in subjects:
-    #     for force_level in force_levels:
-    #         data_sets.append(
-    #             (
-    #                 f"A{i}_Force_Exp_{force_level}",
-    #                 tsnre_path,
-    #                 f".*/A{i}_Force_Exp_{force_level}/.*",
-    #             )
-    #         )
+    tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
+    subjects = list([*range(1, 10)])
+    force_levels = ["low", "med", "high"]
+    for i in subjects:
+        for force_level in force_levels:
+            data_sets.append(
+                (
+                    f"A{i}_Force_Exp_{force_level}",
+                    tsnre_path,
+                    f".*/A{i}_Force_Exp_{force_level}/.*",
+                )
+            )
 
 
     subjects = list([*range(1, 12)])  # ATTENTION
