@@ -42,6 +42,8 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_k
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_scaled_sigmoid import (
     InlierScoreTransformerScaledSigmoid,
 )
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_inv import SimilarityCalcInv
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_rbf import SimilarityCalcRBF
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.outlier.outlier_detector_combiner_mean import (
     OutlierDetectorCombinerMean,
 )
@@ -261,6 +263,21 @@ def generate_tuned_wknn():
     gs = GridSearchCVPP(estimator=knn_est, param_grid=params, scoring=bac_scorer, cv=cv)
     return gs
 
+def generate_tuned_wknn2():
+
+    params = {"n_neighbors": [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]}
+
+    knn_est = WeightedKNNClassifier(
+        algorithm="brute",
+        weights="uniform",
+    )
+
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCVPP(estimator=knn_est, param_grid=params, scoring=bac_scorer, cv=cv)
+    return gs
+
+
 
 def generate_classifiers():
     classifiers = {
@@ -328,6 +345,7 @@ def generate_fknn(
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcRBF(),
                 ),
             ),
         ]
@@ -357,11 +375,12 @@ def generate_fknn2(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN2(
+                FuzzyKNN(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcInv(),
                 ),
             ),
         ]
@@ -615,7 +634,7 @@ def generate_methods():
         # "AWc": generate_d_nb_hard,  # From CORES 2025 hard version!
         "FKNN": generate_fknn,
         "FKNN2": generate_fknn2,
-        "FKNN3": generate_fknn3,
+        # "FKNN3": generate_fknn3,
         # "FKNNc": generate_fknn_crisp,
     }
     return methods
@@ -1462,6 +1481,7 @@ if __name__ == "__main__":
 
     comment_str = """
     Experiment 3.
+    FKNN2 -- inversion weighting.
     """
     run_experiment(
         data_sets,
