@@ -264,7 +264,7 @@ def generate_tuned_wknn():
     knn_est = WeightedKNNClassifier(
         algorithm="brute",
         weights="distance",
-        distance_metric="minkowski",
+        metric="minkowski",
         p=1,
     )
 
@@ -281,7 +281,7 @@ def generate_tuned_wknn2():
     knn_est = WeightedKNNClassifier(
         algorithm="brute",
         weights="uniform",
-        distance_metric="minkowski",
+        metric="minkowski",
         p=1,
     )
 
@@ -1500,7 +1500,7 @@ if __name__ == "__main__":
 
     output_directory = os.path.join(
         settings.EXPERIMENTS_RESULTS_PATH,
-        "./results_channel_knn_weights_3/",
+        "./results_channel_knn_weights_3M/",
     )
     os.makedirs(output_directory, exist_ok=True)
 
