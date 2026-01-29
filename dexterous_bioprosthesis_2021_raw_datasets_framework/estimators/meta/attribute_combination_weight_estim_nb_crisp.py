@@ -1,5 +1,5 @@
 import numpy as np
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_combination_weight_estim_nb import (
+from dexterous_bioprosthesis_2021_raw_datasets.estimators.meta.attribute_combination_weight_estim_nb import (
     AttributeCombinationWeightEstimNB,
     attribute_weights_former_mean1,
 )

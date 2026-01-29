@@ -5,7 +5,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_random_state
 from sklearn.base import clone
-from dexterous_bioprosthesis_2021_raw_datasets_framework.preprocessing.select_attributes_transformer import (
+from dexterous_bioprosthesis_2021_raw_datasets.preprocessing.select_attributes_transformer import (
     SelectAttributesTransformer,
 )
 from kernelnb.estimators.estimatornb import EstimatorNB

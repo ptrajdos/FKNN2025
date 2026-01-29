@@ -142,6 +142,7 @@ dexterous_bioprosthesis_2021_raw_datasets_framework_experiments/**/*.md
 data
 experiments_cache
 experiments_results
+prof
 
 #archives
 *.tar.xz

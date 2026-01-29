@@ -6,6 +6,16 @@ VENV_SUBDIR=${ROOTDIR}/venv
 EXPERIMENT_SUBDIR=${ROOTDIR}/dexterous_bioprosthesis_2021_raw_datasets_framework_experiments
 INSTALLATION_LOG=${ROOTDIR}/install.log
 
+SRCDIR=${ROOTDIR}/dexterous_bioprosthesis_2021_raw_datasets_framework
+TESTDIR?=${ROOTDIR}/tests
+COVDIR=${ROOTDIR}/htmlcov_p
+COVERAGERC=${ROOTDIR}/.coveragerc
+REQ_FILE=${ROOTDIR}/requirements_dev.txt
+INSTALL_LOG_FILE=${ROOTDIR}/install.log
+LOGDIR=${ROOTDIR}/testlogs
+COVERAGE = coverage
+
+PYTEST=pytest
 PYTHON=python
 SYSPYTHON=python
 PIP=pip
@@ -42,7 +52,16 @@ run_experiments: experiment1 experiment2 experiment3
 venv:
 
 	${SYSPYTHON} -m venv --upgrade-deps ${VENV_OPTIONS} ${VENV_SUBDIR}
-	. ${VENV_SUBDIR}/bin/activate; ${PIP} install -e . --log ${INSTALLATION_LOG}
+	. ${VENV_SUBDIR}/bin/activate; ${PIP} install -e . -r ${REQ_FILE} --log ${INSTALLATION_LOG}
+
+profile: venv
+	
+	. ${VENV_SUBDIR}/bin/activate; ${PYTEST} -n auto --cov-report=html --cov=${SRCDIR} --profile ${TESTDIR}
+
+test:venv
+	mkdir -p ${LOGDIR}
+	. ${VENV_SUBDIR}/bin/activate; ${COVERAGE} run --branch  --source=${SRCDIR} -m unittest discover -p '*_test.py' -v -s ${TESTDIR} 2>&1 |tee -a ${LOGFILE}
+	. ${VENV_SUBDIR}/bin/activate; ${COVERAGE} html --show-contexts
 
 data:
 	mkdir -p ${DATADIR}

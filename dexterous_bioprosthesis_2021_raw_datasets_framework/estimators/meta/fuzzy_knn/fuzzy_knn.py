@@ -374,3 +374,38 @@ class FuzzyKNN3(FuzzyKNN2):
 
         combined_predictions = np.min(inference_matrix, axis=2)
         return combined_predictions
+    
+
+class FuzzyKNN4(FuzzyKNN):
+    """
+    Fuzzy K-Nearest Neighbors classifier with weighted features during prediction.
+    """
+
+    def __init__(
+        self,
+        n_neighbors=5,
+        outlier_detector_prototype=None,
+        random_state=0,
+        channel_features=None,
+        similarity_calc=None,
+        t_norm=None,
+        inlier_score_transformer=None,
+    ) -> None:
+        super().__init__(
+            n_neighbors=n_neighbors,
+            outlier_detector_prototype=outlier_detector_prototype,
+            random_state=random_state,
+            channel_features=channel_features,
+            similarity_calc=similarity_calc,
+            t_norm=t_norm,
+            inlier_score_transformer=inlier_score_transformer,
+        )
+
+
+
+    def _combine_channel_predictions(self, inference_matrix):
+        """Combine channel predictions."""
+        #TODO convert distances to similarities.
+        #TODO combine similarities.
+        combined_predictions = np.max(inference_matrix, axis=2)
+        return combined_predictions
