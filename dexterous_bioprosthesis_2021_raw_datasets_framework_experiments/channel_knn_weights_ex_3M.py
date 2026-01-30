@@ -35,6 +35,7 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_k
     FuzzyKNN2,
     FuzzyKNN3,
 )
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.fuzzy_knn_p import FuzzyKNNP
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_crisp import (
     InlierScoreTransformerCrisp,
 )
@@ -44,6 +45,7 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_k
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_scaled_sigmoid import (
     InlierScoreTransformerScaledSigmoid,
 )
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_exp import SimilarityCalcExp
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_inv import (
     SimilarityCalcInv,
 )
@@ -353,7 +355,7 @@ def generate_fknn(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN(
+                FuzzyKNNP(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
@@ -392,12 +394,12 @@ def generate_fknn2(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN(
+                FuzzyKNNP(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
-                    similarity_calc=SimilarityCalcInv(
+                    similarity_calc=SimilarityCalcExp(
                         pairwise_distances_func=pairwise_distances,
                         pairwise_distances_kwargs={"metric": "manhattan"},
                     ),
@@ -1514,7 +1516,7 @@ if __name__ == "__main__":
 
     comment_str = """
     Experiment 3.
-    FKNN2 -- inversion weighting.
+    Approach with product weighted t-norm for combining channel-wise kNN weights.
     Use manhattan distance in similarity calc.
     """
     run_experiment(
