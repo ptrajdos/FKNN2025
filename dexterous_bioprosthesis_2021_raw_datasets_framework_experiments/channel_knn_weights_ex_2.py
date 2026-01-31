@@ -27,6 +27,7 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_k
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_smoothstep import (
     InlierScoreTransformerSmoothstep,
 )
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_exp import SimilarityCalcExp
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.stats_tools import (
     p_val_matrix_to_vec,
     p_val_vec_to_matrix,
@@ -41,6 +42,7 @@ from sklearn.metrics import (
     cohen_kappa_score,
     f1_score,
     make_scorer,
+    pairwise_distances,
 )
 from sklearn.pipeline import Pipeline
 from sklearn.svm import OneClassSVM
@@ -295,6 +297,10 @@ def generate_fknn_nt(
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -327,6 +333,10 @@ def generate_fknn_lp(
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -357,6 +367,10 @@ def generate_fknn_scaled_sigmoid(
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -387,6 +401,10 @@ def generate_fknn_smooth_step(
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -417,6 +435,10 @@ def generate_fknn_smooth_crisp(
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -447,6 +469,10 @@ def generate_fknn_smooth_crisp_0(
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -1321,6 +1347,8 @@ if __name__ == "__main__":
 
     comment_str = """
     Experiment 2.
+    With FuzzyKNNP and exponential similarity.
+
     """
 
     run_experiment(
