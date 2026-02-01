@@ -11,6 +11,9 @@ from results_storage.results_storage import ResultsStorage
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.fuzzy_knn import (
     FuzzyKNN,
 )
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.fuzzy_knn_p import (
+    FuzzyKNNP,
+)
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_crisp import (
     InlierScoreTransformerCrisp,
 )
@@ -24,6 +27,7 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_k
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_smoothstep import (
     InlierScoreTransformerSmoothstep,
 )
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_exp import SimilarityCalcExp
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.stats_tools import (
     p_val_matrix_to_vec,
     p_val_vec_to_matrix,
@@ -38,6 +42,7 @@ from sklearn.metrics import (
     cohen_kappa_score,
     f1_score,
     make_scorer,
+    pairwise_distances,
 )
 from sklearn.pipeline import Pipeline
 from sklearn.svm import OneClassSVM
@@ -130,7 +135,7 @@ from cycler import cycler
 from sklearn.model_selection._search import _estimator_has
 from sklearn.utils._available_if import available_if
 
-N_INTERNAL_SPLITS = 4
+N_INTERNAL_SPLITS = 3
 
 
 class GridSearchCVPP(GridSearchCV):
@@ -287,11 +292,15 @@ def generate_fknn_nt(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN(
+                FuzzyKNNP(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -319,11 +328,15 @@ def generate_fknn_lp(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN(
+                FuzzyKNNP(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -349,11 +362,15 @@ def generate_fknn_scaled_sigmoid(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN(
+                FuzzyKNNP(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -379,11 +396,15 @@ def generate_fknn_smooth_step(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN(
+                FuzzyKNNP(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -409,11 +430,15 @@ def generate_fknn_smooth_crisp(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN(
+                FuzzyKNNP(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -439,11 +464,15 @@ def generate_fknn_smooth_crisp_0(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN(
+                FuzzyKNNP(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "manhattan"},
+                    ),
                 ),
             ),
         ]
@@ -1269,20 +1298,20 @@ if __name__ == "__main__":
     data_path1 = os.path.join(settings.DATAPATH, "Barbara.tar.xz")
     data_sets = []
     # data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
-    data_sets.append(("Barbara", data_path1, "./*"))
+    # data_sets.append(("Barbara", data_path1, "./*"))
 
-    # tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
-    # subjects = list([*range(1, 10)])
-    # force_levels = ["low", "med", "high"]
-    # for i in subjects:
-    #     for force_level in force_levels:
-    #         data_sets.append(
-    #             (
-    #                 f"A{i}_Force_Exp_{force_level}",
-    #                 tsnre_path,
-    #                 f".*/A{i}_Force_Exp_{force_level}/.*",
-    #             )
-    #         )
+    tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
+    subjects = list([*range(1, 10)])
+    force_levels = ["low", "med", "high"]
+    for i in subjects:
+        for force_level in force_levels:
+            data_sets.append(
+                (
+                    f"A{i}_Force_Exp_{force_level}",
+                    tsnre_path,
+                    f".*/A{i}_Force_Exp_{force_level}/.*",
+                )
+            )
 
 
     subjects = list([*range(1, 12)])  # ATTENTION
@@ -1318,13 +1347,15 @@ if __name__ == "__main__":
 
     comment_str = """
     Experiment 2.
+    With FuzzyKNNP and exponential similarity.
+
     """
 
     run_experiment(
         data_sets,
         output_directory,
         n_splits=5,
-        n_repeats=6,
+        n_repeats=3,
         random_state=0,
         n_jobs=-1,
         overwrite=True,
