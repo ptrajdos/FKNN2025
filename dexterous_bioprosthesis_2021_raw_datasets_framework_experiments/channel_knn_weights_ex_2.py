@@ -299,7 +299,7 @@ def generate_fknn_nt(
                     n_neighbors=5,
                     similarity_calc=SimilarityCalcExp(
                         pairwise_distances_func=pairwise_distances,
-                        pairwise_distances_kwargs={"metric": "manhattan"},
+                        pairwise_distances_kwargs={"metric": "euclidean"},
                     ),
                 ),
             ),
@@ -335,7 +335,7 @@ def generate_fknn_lp(
                     n_neighbors=5,
                     similarity_calc=SimilarityCalcExp(
                         pairwise_distances_func=pairwise_distances,
-                        pairwise_distances_kwargs={"metric": "manhattan"},
+                        pairwise_distances_kwargs={"metric": "euclidean"},
                     ),
                 ),
             ),
@@ -369,7 +369,7 @@ def generate_fknn_scaled_sigmoid(
                     n_neighbors=5,
                     similarity_calc=SimilarityCalcExp(
                         pairwise_distances_func=pairwise_distances,
-                        pairwise_distances_kwargs={"metric": "manhattan"},
+                        pairwise_distances_kwargs={"metric": "euclidean"},
                     ),
                 ),
             ),
@@ -403,7 +403,7 @@ def generate_fknn_smooth_step(
                     n_neighbors=5,
                     similarity_calc=SimilarityCalcExp(
                         pairwise_distances_func=pairwise_distances,
-                        pairwise_distances_kwargs={"metric": "manhattan"},
+                        pairwise_distances_kwargs={"metric": "euclidean"},
                     ),
                 ),
             ),
@@ -437,7 +437,7 @@ def generate_fknn_smooth_crisp(
                     n_neighbors=5,
                     similarity_calc=SimilarityCalcExp(
                         pairwise_distances_func=pairwise_distances,
-                        pairwise_distances_kwargs={"metric": "manhattan"},
+                        pairwise_distances_kwargs={"metric": "euclidean"},
                     ),
                 ),
             ),
@@ -471,7 +471,7 @@ def generate_fknn_smooth_crisp_0(
                     n_neighbors=5,
                     similarity_calc=SimilarityCalcExp(
                         pairwise_distances_func=pairwise_distances,
-                        pairwise_distances_kwargs={"metric": "manhattan"},
+                        pairwise_distances_kwargs={"metric": "euclidean"},
                     ),
                 ),
             ),

@@ -661,8 +661,8 @@ def generate_methods():
         "DOa": generate_desp_outlier_full_soft_mean,  # Soft Weighting K=1
         "AW": generate_d_nb_soft,  # From CORES 2025 soft version
         # "AWc": generate_d_nb_hard,  # From CORES 2025 hard version!
-        "FKNN": generate_fknn,
-        "FKNN2": generate_fknn2,
+        "FKNN": generate_fknn2,
+        # "FKNN2": generate_fknn2,
         # "FKNN3": generate_fknn3,
         # "FKNNc": generate_fknn_crisp,
     }
