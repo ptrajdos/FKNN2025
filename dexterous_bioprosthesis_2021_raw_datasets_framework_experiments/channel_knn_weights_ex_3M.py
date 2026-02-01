@@ -267,7 +267,7 @@ def generate_tuned_wknn():
         algorithm="brute",
         weights="distance",
         metric="minkowski",
-        p=1,
+        p=2,
     )
 
     bac_scorer = make_scorer(balanced_accuracy_score)
@@ -284,7 +284,7 @@ def generate_tuned_wknn2():
         algorithm="brute",
         weights="uniform",
         metric="minkowski",
-        p=1,
+        p=2,
     )
 
     bac_scorer = make_scorer(balanced_accuracy_score)
@@ -362,7 +362,7 @@ def generate_fknn(
                     n_neighbors=5,
                     similarity_calc=SimilarityCalcRBF(
                         pairwise_distances_func=pairwise_distances,
-                        pairwise_distances_kwargs={"metric": "manhattan"},
+                        pairwise_distances_kwargs={"metric": "euclidean"},
                     ),
                 ),
             ),
@@ -401,7 +401,7 @@ def generate_fknn2(
                     n_neighbors=5,
                     similarity_calc=SimilarityCalcExp(
                         pairwise_distances_func=pairwise_distances,
-                        pairwise_distances_kwargs={"metric": "manhattan"},
+                        pairwise_distances_kwargs={"metric": "euclidean"},
                     ),
                 ),
             ),
@@ -1502,7 +1502,7 @@ if __name__ == "__main__":
 
     output_directory = os.path.join(
         settings.EXPERIMENTS_RESULTS_PATH,
-        "./results_channel_knn_weights_3M/",
+        "./results_channel_knn_weights_3M_E/",
     )
     os.makedirs(output_directory, exist_ok=True)
 
@@ -1517,16 +1517,16 @@ if __name__ == "__main__":
     comment_str = """
     Experiment 3.
     Approach with product weighted t-norm for combining channel-wise kNN weights.
-    Use manhattan distance in similarity calc.
+    Use euclidean distance in similarity calc.
     """
     run_experiment(
         data_sets,
         output_directory,
         n_splits=5,
-        n_repeats=2,  # should be 6
+        n_repeats=3,  # should be 6
         random_state=0,
         n_jobs=-1,
-        overwrite=True,
+        overwrite=False,
         n_channels=None,
         progress_log_handler=progress_log_handler,
         comment_str=comment_str,
