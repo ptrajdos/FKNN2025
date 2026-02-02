@@ -605,7 +605,7 @@ def generate_MLP(
     params = {
         "estimator__hidden_layer_sizes": [(50,), (100,), (50, 25), (100, 50), (100, 50, 25)],
         "estimator__alpha": [1e-4, 1e-3, 1e-2],
-        "estimator__learning_rate_init": [ 3e-4, 1e-3, 1e-2],
+        "estimator__learning_rate_init": [ 1e-4, 1e-3, 1e-2],
     }
 
     knn_est = MLPClassifier(random_state=0, max_iter=500,early_stopping=True)
