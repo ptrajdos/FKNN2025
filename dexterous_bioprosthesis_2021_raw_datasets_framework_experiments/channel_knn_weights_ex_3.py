@@ -1342,9 +1342,10 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                                     [m for m in method_names],
                                 ]
                             )
+                            c_mi = [f"{m}({n})" for n, m in zip(range(1,n_methods+1), method_names)]
                             av_rnk_df = pd.DataFrame(
                                 avg_ranks.T,
-                                columns=mi,
+                                columns=c_mi,
                                 index=[
                                     "Avg Rnk {}, snr:{}".format(a, si)
                                     for si, a in zip(snrs, string.ascii_letters)
