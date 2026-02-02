@@ -927,7 +927,7 @@ def analyze_results_2C_2(results_directory, output_directory, alpha=0.05):
                             sub_results, axis=(1, 3)
                         )  # snr x methods x folds
 
-                        df = pd.DataFrame(columns=["snr", "method", "value"])
+                        df = pd.DataFrame(columns=["SNR", "method", "value"])
 
                         for i, snr_value in enumerate(
                             combined_results_holder[Dims.SNR.value].values
@@ -936,7 +936,7 @@ def analyze_results_2C_2(results_directory, output_directory, alpha=0.05):
                                 for k in range(sub_results.shape[2]):
                                     new_row = pd.DataFrame(
                                         {
-                                            "snr": snr_value,
+                                            "SNR": snr_value,
                                             "method": f"{rename_classifiers(method_name[0])}, { rename_classifiers( method_name[1])}",
                                             "value": sub_results[i, j, k],
                                         },
@@ -947,16 +947,14 @@ def analyze_results_2C_2(results_directory, output_directory, alpha=0.05):
                                     )
                         sns.set(style="whitegrid")
                         sns.boxplot(
-                            x=df["snr"],
+                            x=df["SNR"],
                             y=df["value"],
                             hue=df["method"],
                             palette="husl",
                         )
                         plt.title(
-                            "{}, {}, Od:{}".format(
+                            "{}".format(
                                 metric_name,
-                                extractor_name,
-                                outlier_detector_name,
                             )
                         )
                         plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
@@ -1123,10 +1121,8 @@ def analyze_results_2C_2_ranks(results_directory, output_directory, alpha=0.05):
                         plt.grid(True, linestyle="--", alpha=0.7)
 
                     plt.title(
-                        "{}, {}, {}".format(
+                        "{}".format(
                             metric_name,
-                            extractor_name,
-                            outlier_detector_name,
                         )
                     )
                     plt.xlabel("SNR")

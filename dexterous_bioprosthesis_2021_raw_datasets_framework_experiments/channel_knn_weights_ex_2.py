@@ -27,7 +27,9 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_k
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_smoothstep import (
     InlierScoreTransformerSmoothstep,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_exp import SimilarityCalcExp
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_exp import (
+    SimilarityCalcExp,
+)
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.stats_tools import (
     p_val_matrix_to_vec,
     p_val_vec_to_matrix,
@@ -54,7 +56,8 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.preprocessing.one_class
     OutlierGeneratorUniform,
 )
 from dexterous_bioprosthesis_2021_raw_datasets.raw_signals.raw_signals_io import (
-    read_signals_from_dirs,read_signals_from_archive
+    read_signals_from_dirs,
+    read_signals_from_archive,
 )
 from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_filters.raw_signals_filter_channel_idx import (
     RawSignalsFilterChannelIdx,
@@ -500,6 +503,7 @@ def generate_methods():
     }
     return methods
 
+
 def rename_methods(name):
     renam_dict = {
         "FKNN_nt": "nt",
@@ -511,7 +515,6 @@ def rename_methods(name):
     }
     renamed = renam_dict.get(name, name)
     return renamed
-
 
 
 # TODO -- INFO name '0' only for compatibility.
@@ -730,10 +733,11 @@ def run_experiment(
         Dims.FOLDS.value: [k for k in range(n_folds)],
     }
 
-    for experiment_name, archive_path, input_data_regex in tqdm(datasets, desc="Data sets"):
+    for experiment_name, archive_path, input_data_regex in tqdm(
+        datasets, desc="Data sets"
+    ):
 
         # metrics x extractors x classifiers x detectors x spoilers x snr x ch_fraction x methods x folds
-    
 
         set_name = experiment_name
 
@@ -746,8 +750,8 @@ def run_experiment(
             continue
 
         pre_set = read_signals_from_archive(
-            archive_path= archive_path,
-            filter_regex= input_data_regex,
+            archive_path=archive_path,
+            filter_regex=input_data_regex,
             dtype=np.float32,
         )
         raw_set = pre_set["accepted"]
@@ -777,7 +781,7 @@ def run_experiment(
 
             raw_train = raw_set[train_idx]
             raw_test = raw_set[test_idx]
-            filter = RawSignalsFilterWindowSegmentationFS(500,250)
+            filter = RawSignalsFilterWindowSegmentationFS(500, 250)
             raw_train = filter.fit_transform(raw_train)
             raw_test = filter.transform(raw_test)
 
@@ -867,15 +871,20 @@ def run_experiment(
 
                                         # TODO no Oracle. Leave like that?
                                         y_pred_all = []
-                                        for i in range(0,len(X_test),batch_size):
+                                        for i in range(0, len(X_test), batch_size):
                                             try:
-                                                y_pred_b = method.predict(X_test[i:i + batch_size], y_test[i:i+batch_size])
+                                                y_pred_b = method.predict(
+                                                    X_test[i : i + batch_size],
+                                                    y_test[i : i + batch_size],
+                                                )
                                             except TypeError:
-                                                y_pred_b = method.predict(X_test[i:i+batch_size])
+                                                y_pred_b = method.predict(
+                                                    X_test[i : i + batch_size]
+                                                )
                                             except Exception as e:
                                                 raise e
                                             y_pred_all.append(y_pred_b)
-                                        y_pred = np.concatenate(y_pred_all,axis=0)
+                                        y_pred = np.concatenate(y_pred_all, axis=0)
                                         y_gt = y_test
 
                                         for (
@@ -998,7 +1007,7 @@ def analyze_results_2C(results_directory, output_directory, alpha=0.05):
                                 sub_results, axis=(0, 2)
                             )  # snr x methods x folds
 
-                            df = pd.DataFrame(columns=["snr", "method", "value"])
+                            df = pd.DataFrame(columns=["SNR", "method", "value"])
 
                             for i, snr_value in enumerate(
                                 results_holder[Dims.SNR.value].values
@@ -1007,7 +1016,7 @@ def analyze_results_2C(results_directory, output_directory, alpha=0.05):
                                     for k in range(sub_results.shape[2]):
                                         new_row = pd.DataFrame(
                                             {
-                                                "snr": snr_value,
+                                                "SNR": snr_value,
                                                 "method": rename_methods(method_name),
                                                 "value": sub_results[i, j, k],
                                             },
@@ -1018,20 +1027,17 @@ def analyze_results_2C(results_directory, output_directory, alpha=0.05):
                                         ).reset_index(drop=True)
                             sns.set(style="whitegrid")
                             sns.boxplot(
-                                x=df["snr"],
+                                x=df["SNR"],
                                 y=df["value"],
                                 hue=df["method"],
                                 palette="husl",
                             )
                             plt.title(
-                                "{}, {}, {}, Od:{}".format(
+                                "{}".format(
                                     metric_name,
-                                    extractor_name,
-                                    classifier_name,
-                                    outlier_detector_name,
                                 )
                             )
-                            plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+                            plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
                             plt.tight_layout()
 
                             pdf.savefig()
@@ -1172,7 +1178,6 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                             )
                             sub_results_r = np.mean(sub_results_r, axis=-1)
                             sub_results = sub_results_r.reshape((n_methods, n_snrs, -1))
-                            
 
                             ranked_data = rankdata(sub_results, axis=0)
                             # methods, snrs
@@ -1188,16 +1193,13 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                                 plt.grid(True, linestyle="--", alpha=0.7)
 
                             plt.title(
-                                "{}, {}, {}, {}".format(
+                                "{}".format(
                                     metric_name,
-                                    extractor_name,
-                                    classifier_name,
-                                    outlier_detector_name,
                                 )
                             )
                             plt.xlabel("SNR")
                             plt.ylabel("Criterion avg rank")
-                            plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+                            plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
                             plt.tight_layout()
                             pdf.savefig()
                             plt.close()
@@ -1316,14 +1318,13 @@ if __name__ == "__main__":
                 )
             )
 
-
     subjects = list([*range(1, 12)])  # ATTENTION
     experiments = list([*range(1, 4)])  # up to 4
     labels = ["restimulus"]
 
     db_name = "db3"
     db_archive_path = os.path.join(settings.DATAPATH, f"{db_name}.zip")
-    
+
     # for experiment in experiments:
     #     for label in labels:
     #         for su in subjects:
