@@ -128,7 +128,7 @@ from sklearn.utils._available_if import available_if
 from estim_attr_weight.attr_weight_mixin import AttributeWeightMixin
 from sklearn.linear_model import LogisticRegression
 
-N_INTERNAL_SPLITS = 4
+N_INTERNAL_SPLITS = 3
 
 
 def _final_estimator_has(attr):
@@ -343,8 +343,8 @@ def generate_classifiers():
         "WKNN": generate_tuned_wknn(),
         "NBGM": generate_tuned_nbgm(),
         "GaussNB": generate_gauss_nb(),
-        "SVMl": generate_tuned_wSVC_lin(),
-        "LRG": generate_tuned_logregr(),
+        # "SVMl": generate_tuned_wSVC_lin(),
+        # "LRG": generate_tuned_logregr(),
     }
     return classifiers
 
