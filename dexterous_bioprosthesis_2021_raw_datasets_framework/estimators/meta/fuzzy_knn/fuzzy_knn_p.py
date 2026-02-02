@@ -223,6 +223,7 @@ class FuzzyKNNP(BaseEstimator, ClassifierMixin):
         n_channels = len(self.channel_features)
         inlier_score_matrix = np.zeros((X.shape[0], n_channels))
 
+        # probability of not being an outlier!
         for channel_id in range(n_channels):
             inlier_score_matrix[..., channel_id] = self.outlier_detectors_[channel_id].predict_proba(X)[:, 1]
 

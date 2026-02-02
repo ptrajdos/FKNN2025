@@ -1164,6 +1164,8 @@ def analyze_results_2C(results_directory, output_directory, alpha=0.05):
                                     outlier_detector_name,
                                 )
                             )
+                            plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+                            plt.tight_layout()
 
                             pdf.savefig()
                             plt.close()
@@ -1328,7 +1330,8 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                             )
                             plt.xlabel("SNR")
                             plt.ylabel("Criterion avg rank")
-                            plt.legend()
+                            plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+                            plt.tight_layout()
                             pdf.savefig()
                             plt.close()
 
