@@ -1226,20 +1226,20 @@ if __name__ == "__main__":
     data_path1 = os.path.join(settings.DATAPATH, "Barbara.tar.xz")
     data_sets = []
     # data_sets.append(("mk_10_03_2022", data_path0B, "./*"))
-    data_sets.append(("Barbara", data_path1, "./*"))
+    # data_sets.append(("Barbara", data_path1, "./*"))
 
-    # tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
-    # subjects = list([*range(1, 10)])
-    # force_levels = ["low", "med", "high"]
-    # for i in subjects:
-    #     for force_level in force_levels:
-    #         data_sets.append(
-    #             (
-    #                 f"A{i}_Force_Exp_{force_level}",
-    #                 tsnre_path,
-    #                 f".*/A{i}_Force_Exp_{force_level}/.*",
-    #             )
-    #         )
+    tsnre_path = os.path.join(settings.DATAPATH, "tsnre_split.zip")
+    subjects = list([*range(1, 10)])
+    force_levels = ["low", "med", "high"]
+    for i in subjects:
+        for force_level in force_levels:
+            data_sets.append(
+                (
+                    f"A{i}_Force_Exp_{force_level}",
+                    tsnre_path,
+                    f".*/A{i}_Force_Exp_{force_level}/.*",
+                )
+            )
 
 
     subjects = list([*range(1, 12)])  # ATTENTION
@@ -1281,7 +1281,7 @@ if __name__ == "__main__":
         data_sets,
         output_directory,
         n_splits=5,
-        n_repeats=6,
+        n_repeats=3,
         random_state=0,
         n_jobs=-1,
         overwrite=True,
