@@ -41,7 +41,7 @@ class SimilarityCalcRBF(ASimilarityCalc):
                 train_distances = self.pairwise_distances_func_(
                     X=X, **self.pairwise_distances_kwargs_
                 )
-                self.gamma_ = 1.0 / (2.0 * np.var(train_distances))
+                self.gamma_ = 1.0 / np.median(train_distances**2)
 
     def pairwise_similarity(self, X, Y=None):
         """

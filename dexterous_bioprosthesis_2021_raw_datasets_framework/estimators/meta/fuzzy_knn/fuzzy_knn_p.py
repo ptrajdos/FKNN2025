@@ -303,3 +303,40 @@ class FuzzyKNNP(BaseEstimator, ClassifierMixin):
         class_predictions = self._get_class_predictions(channel_combined_predictions)
 
         return class_predictions
+
+class FuzzyKNNP2(FuzzyKNNP):
+    def __init__(
+        self,
+        n_neighbors=5,
+        outlier_detector_prototype=None,
+        random_state=0,
+        channel_features=None,
+        similarity_calc=None,
+        t_norm=None,
+        inlier_score_transformer=None,
+    ) -> None:
+        super().__init__(
+            n_neighbors=n_neighbors,
+            outlier_detector_prototype=outlier_detector_prototype,
+            random_state=random_state,
+            channel_features=channel_features,
+            similarity_calc=similarity_calc,
+            t_norm=t_norm,
+            inlier_score_transformer=inlier_score_transformer
+        )
+
+    def _get_inlier_score_matrix(self, X):
+        """
+        Create inlier score matrix for the input data.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            The input data.
+
+        Returns
+        -------
+        array-like, shape (n_X_samples, n_channels)
+            The inlier score matrix for each channel.
+        """
+        return 1.0- super()._get_inlier_score_matrix(X)

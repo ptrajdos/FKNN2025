@@ -35,7 +35,10 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_k
     FuzzyKNN2,
     FuzzyKNN3,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.fuzzy_knn_p import FuzzyKNNP
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.fuzzy_knn_p import (
+    FuzzyKNNP,
+    FuzzyKNNP2,
+)
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_crisp import (
     InlierScoreTransformerCrisp,
 )
@@ -45,7 +48,9 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_k
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_scaled_sigmoid import (
     InlierScoreTransformerScaledSigmoid,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_exp import SimilarityCalcExp
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_exp import (
+    SimilarityCalcExp,
+)
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_inv import (
     SimilarityCalcInv,
 )
@@ -433,11 +438,15 @@ def generate_fknn3(
             ("scaler", RobustScaler()),
             (
                 "estimator",
-                FuzzyKNN3(
+                FuzzyKNNP2(
                     outlier_detector_prototype=deepcopy(outlier_detector_prototype),
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
+                    similarity_calc=SimilarityCalcExp(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "euclidean"},
+                    ),
                 ),
             ),
         ]
@@ -455,6 +464,45 @@ def generate_fknn3(
     cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
     gs = GridSearchCV(estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv)
     return gs
+
+def generate_fknn4(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
+    """
+    Proposed Fuzzy KNN.
+    """
+    pipeline = Pipeline(
+        [
+            ("scaler", RobustScaler()),
+            (
+                "estimator",
+                FuzzyKNNP2(
+                    outlier_detector_prototype=deepcopy(outlier_detector_prototype),
+                    channel_features=channel_features,
+                    random_state=0,
+                    n_neighbors=5,
+                    similarity_calc=SimilarityCalcRBF(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "euclidean"},
+                    ),
+                ),
+            ),
+        ]
+    )
+    params = {
+        "estimator__n_neighbors": [None, *range(1, 25, 2)],
+        "estimator__inlier_score_transformer": [
+            None,
+            # InlierScoreTransformerLowPara(),
+            # InlierScoreTransformerScaledSigmoid(),
+            # InlierScoreTransformerSmoothstep(),
+        ],
+    }
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCV(estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv)
+    return gs
+
 
 
 def generate_fknn_crisp(
@@ -661,10 +709,10 @@ def generate_methods():
         "DOa": generate_desp_outlier_full_soft_mean,  # Soft Weighting K=1
         "AW": generate_d_nb_soft,  # From CORES 2025 soft version
         # "AWc": generate_d_nb_hard,  # From CORES 2025 hard version!
-        "FKNN": generate_fknn2,
-        # "FKNN2": generate_fknn2,
-        # "FKNN3": generate_fknn3,
-        # "FKNNc": generate_fknn_crisp,
+        "FKNN": generate_fknn2, #Exp r
+        "FKNN2": generate_fknn, # RBF r
+        "FKNN3": generate_fknn3, #exp 1-r
+        "FKNN4": generate_fknn4, # RBF 1-r
     }
     return methods
 
@@ -1197,7 +1245,7 @@ def analyze_results_2C(results_directory, output_directory, alpha=0.05):
                                     metric_name,
                                 )
                             )
-                            plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+                            plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
                             plt.tight_layout()
 
                             pdf.savefig()
@@ -1360,7 +1408,7 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                             )
                             plt.xlabel("SNR")
                             plt.ylabel("Criterion avg rank")
-                            plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+                            plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
                             plt.tight_layout()
                             pdf.savefig()
                             plt.close()
@@ -1375,8 +1423,11 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                                     [m for m in method_names],
                                 ]
                             )
-                            
-                            c_mi = [f"{m}({n})" for n, m in zip(range(1,n_methods+1), method_names)]
+
+                            c_mi = [
+                                f"{m}({n})"
+                                for n, m in zip(range(1, n_methods + 1), method_names)
+                            ]
 
                             av_rnk_df = pd.DataFrame(
                                 avg_ranks.T,
