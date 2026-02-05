@@ -1,43 +1,18 @@
 import datetime
 from enum import Enum
-import gc
 import logging
 import os
 import string
 import warnings
 from sklearn.base import check_is_fitted
 from weightedknn.estimators.weightedknn import WeightedKNNClassifier
-from sklearn.svm import SVC
-from sklearn.neural_network import MLPClassifier
-
 
 from results_storage.results_storage import ResultsStorage
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_sel_nb.attribute_weight_estim_nb_hard import (
-    AttributeWeightEstimNBHard,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.attribute_weight_estim_nb import (
-    AttributeWeightEstimNB,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.channel_combination_classifier_outliers_fast2 import (
-    ChannelCombinationClassifierOutliersFast2,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.channel_combination_classifier_outliers_fast2s import (
-    ChannelCombinationClassifierOutliersFast2S,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.des.des_p_outlier_full import (
-    DespOutlierFull,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.des.des_p_outlier_full2 import (
-    DespOutlierFull2,
-)
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.fuzzy_knn import (
     FuzzyKNN,
-    FuzzyKNN2,
-    FuzzyKNN3,
 )
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.fuzzy_knn_p import (
     FuzzyKNNP,
-    FuzzyKNNP2,
 )
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_crisp import (
     InlierScoreTransformerCrisp,
@@ -48,18 +23,14 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_k
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_scaled_sigmoid import (
     InlierScoreTransformerScaledSigmoid,
 )
+
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_smoothstep import (
+    InlierScoreTransformerSmoothstep,
+)
 from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_exp import (
     SimilarityCalcExp,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_inv import (
-    SimilarityCalcInv,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_rbf import (
-    SimilarityCalcRBF,
-)
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.outlier.outlier_detector_combiner_mean import (
-    OutlierDetectorCombinerMean,
-)
+from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.similarity_calc.similarity_calc_rbf import SimilarityCalcRBF
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.stats_tools import (
     p_val_matrix_to_vec,
     p_val_vec_to_matrix,
@@ -122,10 +93,6 @@ from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_
 from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_spoilers.raw_signals_spoiler_rappam import (
     RawSignalsSpoilerRappAM,
 )
-from dexterous_bioprosthesis_2021_raw_datasets_framework.estimators.meta.fuzzy_knn.inlier_score_transformers.inlier_score_transformer_smoothstep import (
-    InlierScoreTransformerSmoothstep,
-)
-
 
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
@@ -151,6 +118,9 @@ from dexterous_bioprosthesis_2021_raw_datasets_framework_experiments.tools impor
 from dexterous_bioprosthesis_2021_raw_datasets_framework.tools.progressparallel import (
     ProgressParallel,
 )
+from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_filters.raw_signals_filter_window_segmentation_fs import (
+    RawSignalsFilterWindowSegmentationFS,
+)
 from joblib import delayed
 from copy import deepcopy
 
@@ -168,11 +138,6 @@ from cycler import cycler
 
 from sklearn.model_selection._search import _estimator_has
 from sklearn.utils._available_if import available_if
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.multiclass import OutputCodeClassifier
-from dexterous_bioprosthesis_2021_raw_datasets.raw_signals_filters.raw_signals_filter_window_segmentation_fs import (
-    RawSignalsFilterWindowSegmentationFS,
-)
 
 N_INTERNAL_SPLITS = 3
 
@@ -266,30 +231,11 @@ def create_extractors():
 
 def generate_tuned_wknn():
 
-    params = {"n_neighbors": [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]}
+    params = {"n_neighbors": [*range(1, 25, 2)]}
 
     knn_est = WeightedKNNClassifier(
         algorithm="brute",
         weights="distance",
-        metric="minkowski",
-        p=2,
-    )
-
-    bac_scorer = make_scorer(balanced_accuracy_score)
-    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
-    gs = GridSearchCVPP(estimator=knn_est, param_grid=params, scoring=bac_scorer, cv=cv)
-    return gs
-
-
-def generate_tuned_wknn2():
-
-    params = {"n_neighbors": [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]}
-
-    knn_est = WeightedKNNClassifier(
-        algorithm="brute",
-        weights="uniform",
-        metric="minkowski",
-        p=2,
     )
 
     bac_scorer = make_scorer(balanced_accuracy_score)
@@ -339,22 +285,12 @@ def generate_metrics():
     return metrics
 
 
-def generate_base(
-    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
-):
-
-    return Pipeline(
-        [("scaler", RobustScaler()), ("classifier", deepcopy(base_classifier))]
-    )
-
-
-def generate_fknn(
+def generate_fknn_nt(
     base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
 ):
     """
     Proposed Fuzzy KNN.
     """
-
     pipeline = Pipeline(
         [
             ("scaler", RobustScaler()),
@@ -377,9 +313,6 @@ def generate_fknn(
         "estimator__n_neighbors": [None, *range(1, 25, 2)],
         "estimator__inlier_score_transformer": [
             None,
-            # InlierScoreTransformerLowPara(),
-            # InlierScoreTransformerScaledSigmoid(),
-            # InlierScoreTransformerSmoothstep(),
         ],
     }
     bac_scorer = make_scorer(balanced_accuracy_score)
@@ -388,7 +321,7 @@ def generate_fknn(
     return gs
 
 
-def generate_fknn2(
+def generate_fknn_lp(
     base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
 ):
     """
@@ -404,7 +337,143 @@ def generate_fknn2(
                     channel_features=channel_features,
                     random_state=0,
                     n_neighbors=5,
-                    similarity_calc=SimilarityCalcExp(
+                    similarity_calc=SimilarityCalcRBF(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "euclidean"},
+                    ),
+                ),
+            ),
+        ]
+    )
+    params = {
+        "estimator__n_neighbors": [None, *range(1, 25, 2)],
+        "estimator__inlier_score_transformer": [InlierScoreTransformerLowPara()],
+    }
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCV(estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv)
+    return gs
+
+
+def generate_fknn_scaled_sigmoid(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
+    """
+    Proposed Fuzzy KNN.
+    """
+    pipeline = Pipeline(
+        [
+            ("scaler", RobustScaler()),
+            (
+                "estimator",
+                FuzzyKNNP(
+                    outlier_detector_prototype=deepcopy(outlier_detector_prototype),
+                    channel_features=channel_features,
+                    random_state=0,
+                    n_neighbors=5,
+                    similarity_calc=SimilarityCalcRBF(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "euclidean"},
+                    ),
+                ),
+            ),
+        ]
+    )
+    params = {
+        "estimator__n_neighbors": [None, *range(1, 25, 2)],
+        "estimator__inlier_score_transformer": [InlierScoreTransformerScaledSigmoid()],
+    }
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCV(estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv)
+    return gs
+
+
+def generate_fknn_smooth_step(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
+    """
+    Proposed Fuzzy KNN.
+    """
+    pipeline = Pipeline(
+        [
+            ("scaler", RobustScaler()),
+            (
+                "estimator",
+                FuzzyKNNP(
+                    outlier_detector_prototype=deepcopy(outlier_detector_prototype),
+                    channel_features=channel_features,
+                    random_state=0,
+                    n_neighbors=5,
+                    similarity_calc=SimilarityCalcRBF(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "euclidean"},
+                    ),
+                ),
+            ),
+        ]
+    )
+    params = {
+        "estimator__n_neighbors": [None, *range(1, 25, 2)],
+        "estimator__inlier_score_transformer": [InlierScoreTransformerSmoothstep()],
+    }
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCV(estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv)
+    return gs
+
+
+def generate_fknn_smooth_crisp(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
+    """
+    Proposed Fuzzy KNN.
+    """
+    pipeline = Pipeline(
+        [
+            ("scaler", RobustScaler()),
+            (
+                "estimator",
+                FuzzyKNNP(
+                    outlier_detector_prototype=deepcopy(outlier_detector_prototype),
+                    channel_features=channel_features,
+                    random_state=0,
+                    n_neighbors=5,
+                    similarity_calc=SimilarityCalcRBF(
+                        pairwise_distances_func=pairwise_distances,
+                        pairwise_distances_kwargs={"metric": "euclidean"},
+                    ),
+                ),
+            ),
+        ]
+    )
+    params = {
+        "estimator__n_neighbors": [None, *range(1, 25, 2)],
+        "estimator__inlier_score_transformer": [InlierScoreTransformerCrisp()],
+    }
+    bac_scorer = make_scorer(balanced_accuracy_score)
+    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
+    gs = GridSearchCV(estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv)
+    return gs
+
+
+def generate_fknn_smooth_crisp_0(
+    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
+):
+    """
+    Proposed Fuzzy KNN.
+    """
+    pipeline = Pipeline(
+        [
+            ("scaler", RobustScaler()),
+            (
+                "estimator",
+                FuzzyKNNP(
+                    outlier_detector_prototype=deepcopy(outlier_detector_prototype),
+                    channel_features=channel_features,
+                    random_state=0,
+                    n_neighbors=5,
+                    similarity_calc=SimilarityCalcRBF(
                         pairwise_distances_func=pairwise_distances,
                         pairwise_distances_kwargs={"metric": "euclidean"},
                     ),
@@ -415,10 +484,7 @@ def generate_fknn2(
     params = {
         "estimator__n_neighbors": [None, *range(1, 25, 2)],
         "estimator__inlier_score_transformer": [
-            None,
-            # InlierScoreTransformerLowPara(),
-            # InlierScoreTransformerScaledSigmoid(),
-            # InlierScoreTransformerSmoothstep(),
+            InlierScoreTransformerCrisp(threshold=0.0)
         ],
     }
     bac_scorer = make_scorer(balanced_accuracy_score)
@@ -427,141 +493,29 @@ def generate_fknn2(
     return gs
 
 
-def generate_desp_outlier_full(
-    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
-):
-
-    single_channel_ensemble = ChannelCombinationClassifierOutliersFast2(
-        outlier_detector_prototype=deepcopy(outlier_detector_prototype),
-        channel_combination_generator_options={"group_sizes": [1]},
-        es_arguments={"k": 3, "random_state": 0},
-        es_class=DespOutlierFull,
-        model_prototype=deepcopy(base_classifier),
-        channel_features=channel_features,
-        partial_train=False,
-    )
-
-    return single_channel_ensemble
-
-
-def generate_desp_outlier_full_soft_mean(
-    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
-):
-
-    single_channel_ensemble = ChannelCombinationClassifierOutliersFast2S(
-        outlier_detector_prototype=deepcopy(outlier_detector_prototype),
-        channel_combination_generator_options={"group_sizes": [1]},
-        es_arguments={
-            "k": 3,
-            "mode": "weighting",
-            "random_state": 0,
-        },  # Important for weighted combination!
-        es_class=DespOutlierFull2,
-        model_prototype=deepcopy(base_classifier),
-        channel_features=channel_features,
-        outlier_detector_combiner_class=OutlierDetectorCombinerMean,
-        partial_train=False,
-    )
-
-    return single_channel_ensemble
-
-
-def generate_d_nb_soft(
-    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
-):
-    pipeline = Pipeline(
-        [
-            ("scaler", RobustScaler()),
-            (
-                "estimator",
-                AttributeWeightEstimNB(
-                    model_prototype=deepcopy(base_classifier),
-                    channel_features=channel_features,
-                    outlier_detector_prototype=deepcopy(outlier_detector_prototype),
-                    random_state=0,
-                ),
-            ),
-        ]
-    )
-    return pipeline
-
-
-def generate_random_forest(
-    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
-):
-
-    params = {
-        "max_depth": [None, 10, 20],
-        "min_samples_split": [2, 5, 10],
-    }
-
-    rf_est = RandomForestClassifier(random_state=0)
-
-    bac_scorer = make_scorer(balanced_accuracy_score)
-    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
-    gs = GridSearchCVPP(estimator=rf_est, param_grid=params, scoring=bac_scorer, cv=cv)
-    return gs
-
-
-
-def generate_SVM_rbf(
-    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
-):
-    params = {"estimator__C": [10**i for i in range(-3, 4, 1)]}
-
-    knn_est = SVC(probability=True, random_state=0, kernel="rbf")
-
-    pipeline = Pipeline([("scaler", RobustScaler()), ("estimator", knn_est)])
-
-    bac_scorer = make_scorer(balanced_accuracy_score)
-    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
-    gs = GridSearchCVPP(
-        estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv, refit=True
-    )
-    return gs
-
-
-def generate_MLP(
-    base_classifier, channel_features, group_sizes=[2], outlier_detector_prototype=None
-):
-    params = {
-        "estimator__hidden_layer_sizes": [
-            (50,),
-            (100,),
-            (50, 25),
-            (100, 50),
-            (100, 50, 25),
-        ],
-        "estimator__alpha": [1e-4, 1e-3, 1e-2],
-        "estimator__learning_rate_init": [1e-4, 1e-3, 1e-2],
-    }
-
-    knn_est = MLPClassifier(random_state=0, max_iter=500, early_stopping=True)
-
-    pipeline = Pipeline([("scaler", RobustScaler()), ("estimator", knn_est)])
-
-    bac_scorer = make_scorer(balanced_accuracy_score)
-    cv = StratifiedKFold(n_splits=N_INTERNAL_SPLITS, shuffle=True, random_state=0)
-    gs = GridSearchCVPP(
-        estimator=pipeline, param_grid=params, scoring=bac_scorer, cv=cv, refit=True
-    )
-    return gs
-
-# TODO uncomment
 def generate_methods():
     methods = {
-        "B": generate_base,
-        "RF": generate_random_forest,
-        # "ECOC": generate_ecoc,
-        "SVM": generate_SVM_rbf,
-        "MLP": generate_MLP,
-        "DO": generate_desp_outlier_full,  # FROM CLDD 2024 K=1
-        "DOa": generate_desp_outlier_full_soft_mean,  # Soft Weighting K=1
-        "AW": generate_d_nb_soft,  # From CORES 2025 soft version
-        "FKNN": generate_fknn2, #Exp r
-        "FKNN2": generate_fknn, # RBF r
+        "FKNN_nt": generate_fknn_nt,
+        "FKNN_lp": generate_fknn_lp,
+        "FKNN_ss": generate_fknn_scaled_sigmoid,
+        "FKNN_sm": generate_fknn_smooth_step,
+        "FKNN_cr": generate_fknn_smooth_crisp,
+        "FKNN_cr0": generate_fknn_smooth_crisp_0,
     }
     return methods
+
+
+def rename_methods(name):
+    renam_dict = {
+        "FKNN_nt": "nt",
+        "FKNN_lp": "lp",
+        "FKNN_ss": "ss",
+        "FKNN_sm": "sm",
+        "FKNN_cr": "cr",
+        "FKNN_cr0": "cr0",
+    }
+    renamed = renam_dict.get(name, name)
+    return renamed
 
 
 # TODO -- INFO name '0' only for compatibility.
@@ -711,9 +665,9 @@ def run_experiment(
     datasets,
     output_directory,
     n_splits=10,
-    n_repeats=4,
+    n_repeats=3,
     random_state=0,
-    n_jobs=-1,
+    n_jobs=1,
     overwrite=True,
     n_channels=None,
     append=True,
@@ -751,7 +705,6 @@ def run_experiment(
     methods = generate_methods()
     n_methods = len(methods)
 
-    # ATTENTION -- REPEATED K-FOLD
     skf = RepeatedStratifiedKFold(
         n_splits=n_splits, n_repeats=n_repeats, random_state=random_state
     )
@@ -803,9 +756,6 @@ def run_experiment(
             dtype=np.float32,
         )
         raw_set = pre_set["accepted"]
-        if len(raw_set) == 0:
-            logging.debug(f"No data for {experiment_name}")
-            continue
 
         if n_channels is not None:
             n_set_channels = raw_set[0].to_numpy().shape[1]
@@ -829,10 +779,9 @@ def run_experiment(
         def compute(fold_idx, train_idx, test_idx):
             # For tracing warnings inside multiprocessing
             warnings.showwarning = warn_with_traceback
-            # TODO I probably need a filter to exclude channels without signal!
+
             raw_train = raw_set[train_idx]
             raw_test = raw_set[test_idx]
-
             filter = RawSignalsFilterWindowSegmentationFS(500, 250)
             raw_train = filter.fit_transform(raw_train)
             raw_test = filter.transform(raw_test)
@@ -846,9 +795,6 @@ def run_experiment(
 
                 X_train, y_train, _ = extractor.fit_transform(raw_train)
                 channel_features = extractor.get_channel_attribs_indices()
-                # FIXME -- Dirty fix. There is only one extractor now. To save memory let us do:
-                del raw_train
-                gc.collect()
 
                 for base_classifier_name in ResultsStorage.coords_need_recalc(
                     results_storage, Dims.CLASSIFIERS.value
@@ -1072,7 +1018,7 @@ def analyze_results_2C(results_directory, output_directory, alpha=0.05):
                                         new_row = pd.DataFrame(
                                             {
                                                 "SNR": snr_value,
-                                                "method": method_name,
+                                                "method": rename_methods(method_name),
                                                 "value": sub_results[i, j, k],
                                             },
                                             index=[0],
@@ -1231,7 +1177,6 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                             sub_results_r = np.moveaxis(
                                 sub_results, [0, 1, 2, 3, 4, 5], [2, 3, 1, 4, 0, 5]
                             )
-
                             sub_results_r = np.mean(sub_results_r, axis=-1)
                             sub_results = sub_results_r.reshape((n_methods, n_snrs, -1))
 
@@ -1244,7 +1189,7 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                                 plt.plot(
                                     [int(i) for i in snrs],
                                     avg_ranks[method_id, :],
-                                    label=method_name,
+                                    label=rename_methods(method_name),
                                 )
                                 plt.grid(True, linestyle="--", alpha=0.7)
 
@@ -1267,15 +1212,10 @@ def analyze_results_2C_ranks(results_directory, output_directory, alpha=0.05):
                                         "{}".format(metric_name)
                                         for _ in range(n_methods)
                                     ],
-                                    [m for m in method_names],
+                                    [rename_methods(m) for m in method_names],
                                 ]
                             )
-
-                            c_mi = [
-                                f"{m}({n})"
-                                for n, m in zip(range(1, n_methods + 1), method_names)
-                            ]
-
+                            c_mi = [f"{rename_methods(m)}({n})" for n, m in zip(range(1,n_methods+1), method_names)]
                             av_rnk_df = pd.DataFrame(
                                 avg_ranks.T,
                                 columns=c_mi,
@@ -1397,10 +1337,9 @@ if __name__ == "__main__":
     #                     f".*/S{su}_E{experiment}_A1_{label}/.*",
     #                 )
     #             )
-
     output_directory = os.path.join(
         settings.EXPERIMENTS_RESULTS_PATH,
-        "./results_channel_knn_weights_3M/",
+        "./results_channel_knn_weights_2B/",
     )
     os.makedirs(output_directory, exist_ok=True)
 
@@ -1413,18 +1352,18 @@ if __name__ == "__main__":
     progress_log_handler = open(progress_log_path, "w")
 
     comment_str = """
-    Experiment 3.
-    Approach with product weighted t-norm for combining channel-wise kNN weights.
-    Use euclidean distance in similarity calc.
+    Experiment 2.
+    With FuzzyKNNP and RBF similarity.
     """
+
     run_experiment(
         data_sets,
         output_directory,
         n_splits=5,
-        n_repeats=3,  # should be 6
+        n_repeats=3,
         random_state=0,
         n_jobs=-1,
-        overwrite=False,
+        overwrite=True,
         n_channels=None,
         progress_log_handler=progress_log_handler,
         comment_str=comment_str,
